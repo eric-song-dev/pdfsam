@@ -79,7 +79,7 @@ We selected the **`PdfDescriptorLoadingStatus`** enum, which models the lifecycl
 
 | Property | Value |
 |----------|-------|
-| **Location** | [PdfDescriptorLoadingStatus.java](pdfsam-model/src/main/java/org/pdfsam/model/pdf/PdfDescriptorLoadingStatus.java) |
+| **Location** | [PdfDescriptorLoadingStatus.java](https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-model/src/main/java/org/pdfsam/model/pdf/PdfDescriptorLoadingStatus.java) |
 | **Type** | Java Enum with FSM semantics |
 | **Used By** | `PdfDocumentDescriptor`, `LoadingStatusIndicatorUpdater`, `SelectionTable` |
 
@@ -144,10 +144,23 @@ stateDiagram-v2
 
 | File | Location |
 |------|----------|
-| [PdfLoadingStatusFSMTest.java](pdfsam-model/src/test/java/org/pdfsam/model/pdf/PdfLoadingStatusFSMTest.java) | `pdfsam-model/src/test/java/org/pdfsam/model/pdf/` | 
+| [PdfLoadingStatusFSMTest.java](https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-model/src/test/java/org/pdfsam/model/pdf/PdfLoadingStatusFSMTest.java) | `pdfsam-model/src/test/java/org/pdfsam/model/pdf/` | 
 
 #### Test Coverage Strategy
 Test that all 7 states exist and have expected properties (icons, descriptions, styles).
+
+```java
+@Test
+@DisplayName("All 7 states are defined")
+void allStatesExist() {
+    PdfDescriptorLoadingStatus[] states = PdfDescriptorLoadingStatus.values();
+    assertThat(states).hasSize(7);
+    assertThat(states).contains(
+        INITIAL, REQUESTED, LOADING, LOADED, 
+        LOADED_WITH_USER_PWD_DECRYPTION, ENCRYPTED, WITH_ERRORS
+    );
+}
+```
 
 #### Transition Coverage Tests
 Test all 11 valid transitions:
@@ -165,23 +178,80 @@ Test all 11 valid transitions:
 | `testEncryptedToRequested` | ENCRYPTED | REQUESTED |
 | `testEncryptedToWithErrors` | ENCRYPTED | WITH_ERRORS |
 
+```java
+// From INITIAL
+@Test
+@DisplayName("INITIAL → REQUESTED: Load request initiated")
+void initialToRequested() {
+    assertThat(INITIAL.canMoveTo(REQUESTED)).isTrue();
+    assertThat(INITIAL.moveTo(REQUESTED)).isEqualTo(REQUESTED);
+}
+
+// From REQUESTED
+@Test
+@DisplayName("REQUESTED → LOADING: Loading begins")
+void requestedToLoading() {
+    assertThat(REQUESTED.canMoveTo(LOADING)).isTrue();
+    assertThat(REQUESTED.moveTo(LOADING)).isEqualTo(LOADING);
+}
+
+// From LOADING
+@Test
+@DisplayName("LOADING → LOADED: Successful load (no encryption)")
+void loadingToLoaded() {
+    assertThat(LOADING.canMoveTo(LOADED)).isTrue();
+    assertThat(LOADING.moveTo(LOADED)).isEqualTo(LOADED);
+}
+```
+
 #### Invalid Transition Tests
 Verify `IllegalStateException` is thrown for invalid transitions.
+
+```java
+@Test
+@DisplayName("INITIAL cannot directly reach LOADING")
+void initialCannotSkipToLoading() {
+    assertThat(INITIAL.canMoveTo(LOADING)).isFalse();
+    assertThatThrownBy(() -> INITIAL.moveTo(LOADING))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Cannot move status from INITIAL to LOADING");
+}
+```
 
 #### Terminal State Tests
 Verify `isFinal()` returns true only for LOADED, LOADED_WITH_USER_PWD_DECRYPTION, and WITH_ERRORS.
 
-#### Path Tests
-Test complete loading paths as integration-style tests.
+```java
+@Test
+@DisplayName("LOADED is a terminal state")
+void loadedIsFinal() {
+    assertThat(LOADED.isFinal()).isTrue();
+}
+```
 
 #### Running the Tests
 
 ```bash
 # Build the project first
-JAVA_HOME=$(/usr/libexec/java_home -v 21) mvn install -DskipTests
+mvn install -DskipTests
 
 # Run FSM tests
-JAVA_HOME=$(/usr/libexec/java_home -v 21) mvn test -pl pdfsam-model -Dtest=PdfLoadingStatusFSMTest
+mvn test -pl pdfsam-model -Dtest=PdfLoadingStatusFSMTest
+```
+
+#### Test Results
+
+```bash
+Results:
+
+Tests run: 50, Failures: 0, Errors: 0, Skipped: 0
+
+------------------------------------------------------------------------
+BUILD SUCCESS
+------------------------------------------------------------------------
+Total time:  4.830 s
+Finished at: 2026-02-11T00:14:55-08:00
+------------------------------------------------------------------------
 ```
 
 <div style="page-break-after: always;"></div>
@@ -586,7 +656,11 @@ mvn test -pl pdfsam-model,pdfsam-ui-components -Dtest="*FSMTest"
 
 ## 🎯 6. Conclusion
 
+This report demonstrates the application of **Finite State Machine (FSM) testing** to PDFsam Basic through three distinct features:
 
+1. **PDF Document Loading Status (Kingson):** A 7-state FSM modeling the document loading lifecycle with explicit valid-invalid transitions
+2. **Form Validation State (Zian):** A 3-state FSM modeling input validation with self-loops and reset transitions
+3. **Notificaiton Type System (Zhenyu):** A multi-state FSM modeling noficiation display workflows
 
 ### Key Takeaways
 
