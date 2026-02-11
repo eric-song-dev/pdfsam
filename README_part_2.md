@@ -174,7 +174,7 @@ Verify `isFinal()` returns true only for LOADED, LOADED_WITH_USER_PWD_DECRYPTION
 #### Path Tests
 Test complete loading paths as integration-style tests.
 
-### 4.3 Running the Tests
+#### Running the Tests
 
 ```bash
 # Build the project first
