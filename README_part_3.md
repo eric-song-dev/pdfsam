@@ -109,12 +109,12 @@ Copy-Item -Recurse -Path "pdfsam-persistence\target\site\jacoco\*" -Destination 
 
 # View CSV reports
 cat pdfsam-model/target/site/jacoco/jacoco.csv
-cat pdfsam-core/target/site/jacoco/jacoco.csv
+cat saved-reports/baseline/core/jacoco.csv
 cat saved-reports/baseline/persistence/jacoco.csv
 
 # View HTML reports
 open pdfsam-model/target/site/jacoco/index.html
-open pdfsam-core/target/site/jacoco/index.html
+open saved-reports/baseline/core/index.html
 open saved-reports/baseline/persistence/index.html
 ```
 
