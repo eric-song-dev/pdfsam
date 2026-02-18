@@ -30,7 +30,7 @@ import static org.pdfsam.model.pdf.PdfDescriptorLoadingStatus.*;
  * - Terminal state coverage: Terminal states are correctly identified
  * - Path coverage: Complete paths through the FSM
  * 
- * @author Eric, Karry, Kingson
+ * @author Kingson
  * @see PdfDescriptorLoadingStatus
  */
 @DisplayName("PDF Loading Status FSM Tests")
