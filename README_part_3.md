@@ -151,7 +151,7 @@ open saved-reports/baseline/persistence/jacoco/index.html
 To extract line coverage from the CSV report:
 
 ```bash
-$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-model/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' saved-reports/baseline/model/jacoco/jacoco.csv | sort -t= -k2 -rn
 
 ComboItem                                     line_miss=15 line_cov=0 br_miss=4 br_cov=0
 FileType                                      line_miss=14 line_cov=0 br_miss=0 br_cov=0
@@ -223,19 +223,63 @@ LoadWorkspaceResponse                         line_miss=0 line_cov=6 br_miss=0 b
 InputPdfArgumentsLoadRequest                  line_miss=0 line_cov=2 br_miss=0 br_cov=2
 ```
 
-#### pdfsam-persistence
+#### pdfsam-core
 
-| Class | Lines Missed | Lines Covered | Line Coverage |
-|-------|:------------:|:-------------:|:-------------:|
-| DefaultEntityRepository |      19      |      23       |      55%      |
-| PreferencesRepository |      16      |      49       |      75%      |
-| PersistenceException |      4       |       2       |      33%      |
-| Repository |      2       |       2       |      50%      |
+| Class | Lines Missed | Lines Covered | Line Coverage | Branches Missed | Branches Covered | Branch Coverage |
+|-------|:-----------:|:------------:|:------------:|:-----------:|:------------:|:------------:|
+| ApplicationRuntimeState | 17 | 27 | 61% | 2 | 4 | 67% |
+| ConversionUtils | 8 | 29 | 78% | 3 | 13 | 81% |
 
 To extract line coverage from the CSV report:
 
 ```bash
-$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-persistence/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' saved-reports/baseline/core/jacoco/jacoco.csv | sort -t= -k2 -rn
+
+FileChooserWithWorkingDirectory               line_miss=35 line_cov=0 br_miss=10 br_cov=0
+BrandableProperty                             line_miss=29 line_cov=0 br_miss=0 br_cov=0
+ApplicationContext                            line_miss=29 line_cov=28 br_miss=5 br_cov=1
+ApplicationRuntimeState                       line_miss=17 line_cov=27 br_miss=2 br_cov=4
+DirectoryChooserWithWorkingDirectory          line_miss=15 line_cov=0 br_miss=4 br_cov=0
+MultiplePdfSourceMultipleOutputParametersBuilder line_miss=12 line_cov=0 br_miss=2 br_cov=0
+AbstractPdfOutputParametersBuilder            line_miss=11 line_cov=0 br_miss=0 br_cov=0
+SinglePdfSourceMultipleOutputParametersBuilder line_miss=10 line_cov=0 br_miss=0 br_cov=0
+ConversionUtils                               line_miss=8 line_cov=29 br_miss=3 br_cov=13
+SplitParametersBuilder                        line_miss=7 line_cov=0 br_miss=2 br_cov=0
+Choosers                                      line_miss=6 line_cov=0 br_miss=0 br_cov=0
+AbstractParametersBuilder                     line_miss=5 line_cov=0 br_miss=0 br_cov=0
+ObjectCollectionWriter                        line_miss=4 line_cov=21 br_miss=0 br_cov=4
+EncryptionUtils                               line_miss=4 line_cov=15 br_miss=0 br_cov=4
+ApplicationPersistentSettings                 line_miss=2 line_cov=71 br_miss=3 br_cov=7
+Choosers.FileChooserHolder                    line_miss=1 line_cov=0 br_miss=0 br_cov=0
+Choosers.DirectoryChooserHolder               line_miss=1 line_cov=0 br_miss=0 br_cov=0
+XmlUtils                                      line_miss=0 line_cov=5 br_miss=0 br_cov=4
+Validators                                    line_miss=0 line_cov=16 br_miss=0 br_cov=8
+StringPersistentProperty                      line_miss=0 line_cov=20 br_miss=0 br_cov=0
+RegexValidator                                line_miss=0 line_cov=5 br_miss=0 br_cov=4
+PositiveIntRangeStringValidator               line_miss=0 line_cov=11 br_miss=2 br_cov=8
+PositiveIntegerValidator                      line_miss=0 line_cov=2 br_miss=0 br_cov=4
+PositiveIntegerStringValidator                line_miss=0 line_cov=4 br_miss=0 br_cov=2
+PersistentPropertyChange                      line_miss=0 line_cov=1 br_miss=0 br_cov=0
+IntegerPersistentProperty                     line_miss=0 line_cov=7 br_miss=0 br_cov=0
+FileValidator                                 line_miss=0 line_cov=2 br_miss=0 br_cov=4
+FileTypeValidator                             line_miss=0 line_cov=7 br_miss=1 br_cov=5
+ContainedIntegerValidator                     line_miss=0 line_cov=7 br_miss=0 br_cov=0
+BooleanPersistentProperty                     line_miss=0 line_cov=22 br_miss=0 br_cov=0
+```
+
+#### pdfsam-persistence
+
+| Class | Lines Missed | Lines Covered | Line Coverage | Branches Missed | Branches Covered | Branch Coverage |
+|-------|:-----------:|:------------:|:------------:|:-----------:|:------------:|:------------:|
+| PreferencesRepository | 16 | 49 | 75% | 0 | 2 | 100% |
+| DefaultEntityRepository | 19 | 23 | 55% | 0 | 4 | 100% |
+| PersistenceException | 4 | 2 | 33% | 0 | 0 | — |
+| Repository | 2 | 2 | 50% | 0 | 0 | — |
+
+To extract line coverage from the CSV report:
+
+```bash
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' saved-reports/baseline/persistence/jacoco/jacoco.csv | sort -t= -k2 -rn
 
 DefaultEntityRepository                       line_miss=19 line_cov=23 br_miss=0 br_cov=4
 PreferencesRepository                         line_miss=16 line_cov=49 br_miss=0 br_cov=2
@@ -525,11 +569,46 @@ void maybeWorkingPathWithRegularFile(@TempDir Path tempDir) throws IOException {
 
 ### 4.3 Coverage Improvement
 
-| Class | Before | After | Δ Lines |
-|-------|:------:|:-----:|:-------:|
-| ConversionUtils | 29 | 32 | **+3** |
-| ApplicationRuntimeState | 27 | 33 | **+6** |
-| **Total** | | | **+9** |
+| Class | Before Lines | After Lines | Δ Lines | Before Branches | After Branches | Δ Branches |
+|-------|:------:|:-----:|:-------:|:------:|:-----:|:-------:|
+| ApplicationRuntimeState | 27 | 33 | **+6** | 4 | 4 | — |
+| ConversionUtils | 29 | 32 | **+3** | 13 | 16 | **+3** |
+| **Total** | | | **+9** | | | **+3** |
+
+```bash
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-core/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
+
+FileChooserWithWorkingDirectory               line_miss=35 line_cov=0 br_miss=10 br_cov=0
+BrandableProperty                             line_miss=29 line_cov=0 br_miss=0 br_cov=0
+ApplicationContext                            line_miss=29 line_cov=28 br_miss=5 br_cov=1
+DirectoryChooserWithWorkingDirectory          line_miss=15 line_cov=0 br_miss=4 br_cov=0
+MultiplePdfSourceMultipleOutputParametersBuilder line_miss=12 line_cov=0 br_miss=2 br_cov=0
+ApplicationRuntimeState                       line_miss=11 line_cov=33 br_miss=2 br_cov=4
+AbstractPdfOutputParametersBuilder            line_miss=11 line_cov=0 br_miss=0 br_cov=0
+SinglePdfSourceMultipleOutputParametersBuilder line_miss=10 line_cov=0 br_miss=0 br_cov=0
+SplitParametersBuilder                        line_miss=7 line_cov=0 br_miss=2 br_cov=0
+Choosers                                      line_miss=6 line_cov=0 br_miss=0 br_cov=0
+ConversionUtils                               line_miss=5 line_cov=32 br_miss=0 br_cov=16
+AbstractParametersBuilder                     line_miss=5 line_cov=0 br_miss=0 br_cov=0
+ObjectCollectionWriter                        line_miss=4 line_cov=21 br_miss=0 br_cov=4
+EncryptionUtils                               line_miss=4 line_cov=15 br_miss=0 br_cov=4
+ApplicationPersistentSettings                 line_miss=2 line_cov=71 br_miss=3 br_cov=7
+Choosers.FileChooserHolder                    line_miss=1 line_cov=0 br_miss=0 br_cov=0
+Choosers.DirectoryChooserHolder               line_miss=1 line_cov=0 br_miss=0 br_cov=0
+XmlUtils                                      line_miss=0 line_cov=5 br_miss=0 br_cov=4
+Validators                                    line_miss=0 line_cov=16 br_miss=0 br_cov=8
+StringPersistentProperty                      line_miss=0 line_cov=20 br_miss=0 br_cov=0
+RegexValidator                                line_miss=0 line_cov=5 br_miss=0 br_cov=4
+PositiveIntRangeStringValidator               line_miss=0 line_cov=11 br_miss=2 br_cov=8
+PositiveIntegerValidator                      line_miss=0 line_cov=2 br_miss=0 br_cov=4
+PositiveIntegerStringValidator                line_miss=0 line_cov=4 br_miss=0 br_cov=2
+PersistentPropertyChange                      line_miss=0 line_cov=1 br_miss=0 br_cov=0
+IntegerPersistentProperty                     line_miss=0 line_cov=7 br_miss=0 br_cov=0
+FileValidator                                 line_miss=0 line_cov=2 br_miss=0 br_cov=4
+FileTypeValidator                             line_miss=0 line_cov=7 br_miss=1 br_cov=5
+ContainedIntegerValidator                     line_miss=0 line_cov=7 br_miss=0 br_cov=0
+BooleanPersistentProperty                     line_miss=0 line_cov=22 br_miss=0 br_cov=0
+```
 
 <div style="page-break-after: always;"></div>
 
@@ -640,13 +719,13 @@ class ZianExceptionCoverageTest {
 
 ### 5.3 Coverage Improvement
 
-| Class                            | Before | After | Δ Lines |
-|----------------------------------|:------:|:-----:|:-------:|
-| DefaultEntityRepository          |   23   |  42   | **+19** |
-| PersistenceException             |   2    |   6   | **+4**  |
-| PreferenceRepository (interface) |   49   |  61   | **+12** |
-| Repository                       |   2    |   4   | **+2**  |
-| **Total**                        |   76   |  113  | **+37** |
+| Class | Before Lines | After Lines | Δ Lines | Before Branches | After Branches | Δ Branches |
+|-------|:------:|:-----:|:-------:|:------:|:-----:|:-------:|
+| DefaultEntityRepository | 23 | 42 | **+19** | 4 | 4 | — |
+| PreferencesRepository | 49 | 61 | **+12** | 2 | 2 | — |
+| PersistenceException | 2 | 6 | **+4** | 0 | 0 | — |
+| Repository | 2 | 4 | **+2** | 0 | 0 | — |
+| **Total** | | | **+37** | | | **0** |
 
 ```bash
 $ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-persistence/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
@@ -700,8 +779,8 @@ BUILD SUCCESS
 ```
 
 ```bash
-$ mvn test jacoco:report -pl pdfsam-model -Dtest=KingsonWhiteBoxTest
-Tests run: 22, Failures: 0, Errors: 0, Skipped: 0
+$ mvn test jacoco:report -pl pdfsam-core -Dtest=KingsonWhiteBoxTest
+Tests run: 28, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
@@ -720,9 +799,9 @@ This report documents our application of **structural (white-box) testing** to P
 | Team Member     | Module | Δ New Tests | Δ Lines | Δ Branches |
 |-----------------|--------|:-----------:|:-------:|:----------:|
 | **Zhenyu Song** | pdfsam-model |   **+44**   | **+56** |   **+5**   |
-| **Kingson Zhang** | pdfsam-core | **+22** | **+9** | **+1**
+| **Kingson Zhang** | pdfsam-core | **+28** | **+9** | **+3**
 | **Zian Xu**     | pdfsam-persistence |   **+27**   | **+37** |   **0**    |
-| **Total** | | **+93** | **+102** | **+6**
+| **Total** | | **+99** | **+102** | **+8**
 
 ### Key Takeaways
 
