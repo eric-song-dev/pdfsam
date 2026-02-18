@@ -83,7 +83,6 @@ In order to see the test coverage of the current tests in the application, we us
 </plugin>
 ```
 
-Reports are located at in the JaCoCo saved reports folder <a href="https://github.com/eric-song-dev/pdfsam/blob/master/saved-reports\baseline\persistence\jacoco.csv">here</a>.
 
 <div style="page-break-after: always;"></div>
 
