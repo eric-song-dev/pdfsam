@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationPersistentSettings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.context</a> &gt; <span class="el_source">ApplicationPersistentSettings.java</span></div><h1>ApplicationPersistentSettings.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 19/09/22
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.context;
+
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import org.pdfsam.persistence.PersistenceException;
+import org.pdfsam.persistence.PreferencesRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
+import static org.sejda.commons.util.RequireUtils.requireNotNullArg;
+
+/**
+ * Persistent settings for the application
+ *
+ * @author Andrea Vacondio
+ */
+public class ApplicationPersistentSettings {
+
+<span class="fc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(ApplicationPersistentSettings.class);</span>
+
+    private final PreferencesRepository repo;
+<span class="fc" id="L47">    private final SimpleObjectProperty&lt;PersistentPropertyChange&lt;String&gt;&gt; stringSettingsChanges = new SimpleObjectProperty&lt;&gt;();</span>
+<span class="fc" id="L48">    private final SimpleObjectProperty&lt;PersistentPropertyChange&lt;Integer&gt;&gt; intSettingsChanges = new SimpleObjectProperty&lt;&gt;();</span>
+<span class="fc" id="L49">    private final SimpleObjectProperty&lt;PersistentPropertyChange&lt;Boolean&gt;&gt; boolSettingsChanges = new SimpleObjectProperty&lt;&gt;();</span>
+
+<span class="fc" id="L51">    ApplicationPersistentSettings(PreferencesRepository repo) {</span>
+<span class="fc" id="L52">        this.repo = repo;</span>
+<span class="fc" id="L53">    }</span>
+
+    /**
+     * @param prop
+     * @return the value for the given {@link StringPersistentProperty} or the default associated value
+     */
+    public Optional&lt;String&gt; get(StringPersistentProperty prop) {
+<span class="fc" id="L60">        requireNotNullArg(prop, &quot;Cannot get value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L62">            return ofNullable(this.repo.getString(prop.key(), prop.defaultSupplier()));</span>
+<span class="fc" id="L63">        } catch (PersistenceException e) {</span>
+<span class="fc" id="L64">            LOG.error(&quot;Unable to get persistent property: &quot; + prop, e);</span>
+        }
+<span class="fc" id="L66">        return ofNullable(prop.defaultSupplier().get());</span>
+    }
+
+    /**
+     * @param prop
+     * @return the value of the given {@link IntegerPersistentProperty} or the default associated value
+     */
+    public int get(IntegerPersistentProperty prop) {
+<span class="fc" id="L74">        requireNotNullArg(prop, &quot;Cannot get value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L76">            return this.repo.getInt(prop.key(), prop.defaultSupplier());</span>
+<span class="fc" id="L77">        } catch (PersistenceException e) {</span>
+<span class="fc" id="L78">            LOG.error(&quot;Unable to get persistent property: &quot; + prop, e);</span>
+        }
+<span class="fc" id="L80">        return prop.defaultSupplier().get();</span>
+    }
+
+    /**
+     * @param prop
+     * @return the value of the given {@link BooleanPersistentProperty} or the default associated value
+     */
+    public boolean get(BooleanPersistentProperty prop) {
+<span class="fc" id="L88">        requireNotNullArg(prop, &quot;Cannot get value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L90">            return this.repo.getBoolean(prop.key(), prop.defaultSupplier());</span>
+<span class="fc" id="L91">        } catch (NumberFormatException | PersistenceException e) {</span>
+<span class="fc" id="L92">            LOG.error(&quot;Unable to get persistent property: &quot; + prop, e);</span>
+        }
+<span class="fc" id="L94">        return prop.defaultSupplier().get();</span>
+    }
+
+    /**
+     * Persists the given String property key/value
+     */
+    public void set(StringPersistentProperty prop, String value) {
+<span class="fc" id="L101">        requireNotNullArg(prop, &quot;Cannot set value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L103">            this.repo.saveString(prop.key(), value);</span>
+<span class="fc" id="L104">            stringSettingsChanges.set(new PersistentPropertyChange&lt;&gt;(prop, ofNullable(value)));</span>
+<span class="fc" id="L105">        } catch (PersistenceException e) {</span>
+<span class="fc" id="L106">            LOG.error(&quot;Unable to save persistent property&quot;, e);</span>
+<span class="fc" id="L107">        }</span>
+
+<span class="fc" id="L109">    }</span>
+
+    /**
+     * Persists the given Integer property key/value
+     */
+    public void set(IntegerPersistentProperty prop, int value) {
+<span class="fc" id="L115">        requireNotNullArg(prop, &quot;Cannot set value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L117">            this.repo.saveInt(prop.key(), value);</span>
+<span class="fc" id="L118">            intSettingsChanges.set(new PersistentPropertyChange&lt;&gt;(prop, of(value)));</span>
+<span class="fc" id="L119">        } catch (PersistenceException e) {</span>
+<span class="fc" id="L120">            LOG.error(&quot;Unable to save persistent property&quot;, e);</span>
+<span class="fc" id="L121">        }</span>
+<span class="fc" id="L122">    }</span>
+
+    /**
+     * Persists the given Boolean property key/value
+     */
+    public void set(BooleanPersistentProperty prop, boolean value) {
+<span class="fc" id="L128">        requireNotNullArg(prop, &quot;Cannot set value for a null property&quot;);</span>
+        try {
+<span class="fc" id="L130">            this.repo.saveBoolean(prop.key(), value);</span>
+<span class="fc" id="L131">            boolSettingsChanges.set(new PersistentPropertyChange&lt;&gt;(prop, of(value)));</span>
+<span class="fc" id="L132">        } catch (PersistenceException e) {</span>
+<span class="fc" id="L133">            LOG.error(&quot;Unable to save persistent property&quot;, e);</span>
+<span class="fc" id="L134">        }</span>
+<span class="fc" id="L135">    }</span>
+
+    /**
+     * @param property
+     * @return true if there is a value stored for the given persistent property
+     */
+    public boolean hasValueFor(PersistentProperty&lt;?&gt; property) {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        if (nonNull(property)) {</span>
+<span class="fc" id="L143">            return Arrays.stream(this.repo.keys()).anyMatch(k -&gt; k.equals(property.key()));</span>
+        }
+<span class="fc" id="L145">        return false;</span>
+    }
+
+    /**
+     * Deletes the value stored for the given property
+     *
+     * @param property
+     */
+    public void delete(PersistentProperty&lt;?&gt; property) {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (nonNull(property)) {</span>
+<span class="fc" id="L155">            this.repo.delete(property.key());</span>
+        }
+<span class="fc" id="L157">    }</span>
+
+    /**
+     * @return an observable for changes to the given property
+     */
+    public ObservableValue&lt;Optional&lt;String&gt;&gt; settingsChanges(StringPersistentProperty prop) {
+<span class="fc" id="L163">        var value = new SimpleObjectProperty&lt;Optional&lt;String&gt;&gt;(empty());</span>
+<span class="fc" id="L164">        stringSettingsChanges.subscribe((old, c) -&gt; {</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">            if (c.property().equals(prop)) {</span>
+<span class="fc" id="L166">                value.set(c.value());</span>
+            }
+<span class="fc" id="L168">        });</span>
+<span class="fc" id="L169">        return value;</span>
+    }
+
+    /**
+     * @return an observable for changes to the given property
+     */
+    public ObservableValue&lt;Optional&lt;Integer&gt;&gt; settingsChanges(IntegerPersistentProperty prop) {
+<span class="fc" id="L176">        var value = new SimpleObjectProperty&lt;Optional&lt;Integer&gt;&gt;(empty());</span>
+<span class="fc" id="L177">        intSettingsChanges.subscribe((old, c) -&gt; {</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">            if (c.property().equals(prop)) {</span>
+<span class="fc" id="L179">                value.set(c.value());</span>
+            }
+<span class="fc" id="L181">        });</span>
+<span class="fc" id="L182">        return value;</span>
+    }
+
+    /**
+     * @return an observable for changes to the given property
+     */
+    public ObservableValue&lt;Optional&lt;Boolean&gt;&gt; settingsChanges(BooleanPersistentProperty prop) {
+<span class="fc" id="L189">        var value = new SimpleObjectProperty&lt;Optional&lt;Boolean&gt;&gt;(empty());</span>
+<span class="fc" id="L190">        boolSettingsChanges.subscribe((old, c) -&gt; {</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">            if (c.property().equals(prop)) {</span>
+<span class="fc" id="L192">                value.set(c.value());</span>
+            }
+<span class="fc" id="L194">        });</span>
+<span class="fc" id="L195">        return value;</span>
+    }
+
+    /**
+     * Clears all the persistent settings
+     */
+    public void clean() {
+        try {
+<span class="fc" id="L203">            this.repo.clean();</span>
+<span class="fc" id="L204">            LOG.info(&quot;Persistent application settings deleted&quot;);</span>
+<span class="nc" id="L205">        } catch (PersistenceException e) {</span>
+<span class="nc" id="L206">            LOG.error(&quot;Unable to clear application settings&quot;, e);</span>
+<span class="fc" id="L207">        }</span>
+<span class="fc" id="L208">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

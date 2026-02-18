@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationContext.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.context</a> &gt; <span class="el_source">ApplicationContext.java</span></div><h1>ApplicationContext.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 19/09/22
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.context;
+
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import org.apache.commons.lang3.StringUtils;
+import org.pdfsam.injector.Injector;
+import org.pdfsam.injector.Key;
+import org.pdfsam.persistence.PreferencesRepository;
+
+import java.io.Closeable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.Objects;
+import java.util.Optional;
+
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
+import static java.util.function.Predicate.not;
+import static org.pdfsam.core.context.StringPersistentProperty.FONT;
+import static org.pdfsam.core.context.StringPersistentProperty.FONT_SIZE;
+import static org.pdfsam.core.context.StringPersistentProperty.WORKING_PATH;
+import static org.pdfsam.core.support.params.ConversionUtils.toWeb;
+
+/**
+ * @author Andrea Vacondio
+ */
+public class ApplicationContext implements Closeable {
+
+<span class="fc" id="L49">    private static final ApplicationContext CONTEXT = new ApplicationContext();</span>
+
+    private final ApplicationPersistentSettings persistentSettings;
+    private ApplicationRuntimeState runtimeState;
+<span class="fc" id="L53">    private Optional&lt;Injector&gt; injector = Optional.empty();</span>
+
+    private ApplicationContext() {
+<span class="fc" id="L56">        this(new ApplicationPersistentSettings(new PreferencesRepository(&quot;/org/pdfsam/user/conf&quot;)), null);</span>
+<span class="fc" id="L57">    }</span>
+
+    /**
+     * @deprecated use in tests
+     */
+    @Deprecated
+<span class="fc" id="L63">    ApplicationContext(ApplicationPersistentSettings persistentSettings, ApplicationRuntimeState runtimeState) {</span>
+<span class="fc" id="L64">        this.persistentSettings = persistentSettings;</span>
+<span class="fc" id="L65">        this.runtimeState = runtimeState;</span>
+<span class="fc" id="L66">    }</span>
+
+    /**
+     * @return the application context
+     */
+    public static ApplicationContext app() {
+<span class="nc" id="L72">        return CONTEXT;</span>
+    }
+
+    /**
+     * @return the application settings
+     */
+    public ApplicationPersistentSettings persistentSettings() {
+<span class="fc" id="L79">        return this.persistentSettings;</span>
+    }
+
+    /**
+     * @return the application runtime state
+     */
+    public ApplicationRuntimeState runtimeState() {
+<span class="fc" id="L86">        synchronized (this) {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            if (Objects.isNull(this.runtimeState)) {</span>
+<span class="fc" id="L88">                this.runtimeState = new ApplicationRuntimeState();</span>
+                //listen for changes in the working path
+<span class="fc" id="L90">                this.persistentSettings().settingsChanges(WORKING_PATH).subscribe(path -&gt; {</span>
+<span class="fc" id="L91">                    this.runtimeState.defaultWorkingPath(</span>
+<span class="fc" id="L92">                            path.filter(StringUtils::isNotBlank).map(Paths::get).filter(Files::isDirectory)</span>
+<span class="fc" id="L93">                                    .orElse(null));</span>
+<span class="fc" id="L94">                });</span>
+
+<span class="pc" id="L96">                var workingPath = persistentSettings().get(WORKING_PATH).filter(StringUtils::isNotBlank).map(Paths::get)</span>
+<span class="pc" id="L97">                        .filter(Files::isDirectory).orElse(null);</span>
+<span class="fc" id="L98">                this.runtimeState.defaultWorkingPath(workingPath);</span>
+            }
+<span class="fc" id="L100">        }</span>
+<span class="fc" id="L101">        return this.runtimeState;</span>
+    }
+
+    /**
+     * Register the given scene to application context to listen to theme changes and other events
+     *
+     * @param scene
+     */
+    public void registerScene(Scene scene) {
+<span class="nc" id="L110">        this.runtimeState().theme().subscribe(t -&gt; {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (Objects.nonNull(t)) {</span>
+<span class="nc" id="L112">                Platform.runLater(() -&gt; {</span>
+<span class="nc" id="L113">                    scene.getStylesheets().setAll(t.stylesheets());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                    if (!Platform.isSupported(ConditionalFeature.TRANSPARENT_WINDOW)) {</span>
+<span class="nc" id="L115">                        scene.getStylesheets().addAll(t.transparentIncapableStylesheets());</span>
+                    }
+<span class="nc" id="L117">                    ofNullable(t.defaultPrimary()).or(() -&gt; of(toWeb(Platform.getPreferences().getAccentColor())))</span>
+<span class="nc" id="L118">                            .map(c -&gt; String.format(&quot;.root{-default-primary: %s;}&quot;, c))</span>
+<span class="nc" id="L119">                            .map(css -&gt; &quot;data:text/css;base64,&quot; + Base64.getEncoder().encodeToString(css.getBytes()))</span>
+<span class="nc" id="L120">                            .ifPresent(scene.getStylesheets()::add);</span>
+<span class="nc" id="L121">                    updateFont(scene);</span>
+<span class="nc" id="L122">                });</span>
+            }
+<span class="nc" id="L124">        });</span>
+<span class="nc" id="L125">        this.persistentSettings().settingsChanges(FONT).subscribe(_ -&gt; updateFont(scene));</span>
+<span class="nc" id="L126">        this.persistentSettings().settingsChanges(FONT_SIZE).subscribe(_ -&gt; updateFont(scene));</span>
+<span class="nc" id="L127">    }</span>
+
+    private void updateFont(Scene scene) {
+<span class="nc" id="L130">        String style = this.persistentSettings().get(FONT).filter(not(String::isBlank))</span>
+<span class="nc" id="L131">                .map(s -&gt; &quot;-fx-font-family: \&quot;&quot; + s + &quot;\&quot;;\n&quot;)</span>
+<span class="nc" id="L132">                .orElse(&quot;&quot;);</span>
+<span class="nc" id="L133">        style += this.persistentSettings().get(FONT_SIZE).filter(not(String::isBlank))</span>
+<span class="nc" id="L134">                .map(s -&gt; &quot;-fx-font-size: &quot; + s + &quot;;&quot;)</span>
+<span class="nc" id="L135">                .orElse(&quot;&quot;);</span>
+<span class="nc" id="L136">        scene.getRoot().setStyle(style);</span>
+<span class="nc" id="L137">    }</span>
+
+    /**
+     * Sets the injector
+     */
+    public void injector(Injector injector) {
+<span class="fc" id="L143">        this.injector = ofNullable(injector);</span>
+<span class="fc" id="L144">    }</span>
+
+    /**
+     * @return an instance of type
+     */
+    public &lt;T&gt; T instance(Class&lt;T&gt; type) {
+<span class="nc" id="L150">        return injector.orElseThrow(() -&gt; new IllegalStateException(&quot;Injector not set for this application&quot;))</span>
+<span class="nc" id="L151">                .instance(type);</span>
+    }
+
+    public &lt;T&gt; T instance(Key&lt;T&gt; key) {
+<span class="nc" id="L155">        return injector.orElseThrow(() -&gt; new IllegalStateException(&quot;Injector not set for this application&quot;))</span>
+<span class="nc" id="L156">                .instance(key);</span>
+    }
+
+    public void clean() {
+<span class="fc" id="L160">        persistentSettings.clean();</span>
+<span class="fc" id="L161">    }</span>
+
+    @Override
+    public void close() {
+<span class="fc" id="L165">        injector.ifPresent(Injector::close);</span>
+<span class="fc" id="L166">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

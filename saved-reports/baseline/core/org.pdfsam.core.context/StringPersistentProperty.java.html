@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StringPersistentProperty.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.context</a> &gt; <span class="el_source">StringPersistentProperty.java</span></div><h1>StringPersistentProperty.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 18/09/22
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.context;
+
+import org.sejda.model.pdf.PdfVersion;
+
+import java.util.function.Supplier;
+
+import static org.pdfsam.core.ConfigurableSystemProperty.LOCALE_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.PDFVERSION_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.PREFIX_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.THEME_PROP;
+
+/**
+ * Configurable String value property
+ *
+ * @author Andrea Vacondio
+ */
+<span class="fc" id="L35">public enum StringPersistentProperty implements PersistentProperty&lt;String&gt; {</span>
+<span class="fc" id="L36">    WORKSPACE_PATH(() -&gt; &quot;&quot;),</span>
+<span class="fc" id="L37">    WORKING_PATH(() -&gt; &quot;&quot;),</span>
+<span class="fc" id="L38">    STARTUP_MODULE(() -&gt; &quot;&quot;),</span>
+<span class="fc" id="L39">    LOCALE(() -&gt; System.getProperty(LOCALE_PROP)),</span>
+<span class="fc" id="L40">    THEME(() -&gt; System.getProperty(THEME_PROP)),</span>
+<span class="pc" id="L41">    FONT(() -&gt; &quot;&quot;),</span>
+<span class="pc" id="L42">    FONT_SIZE(() -&gt; &quot;&quot;),</span>
+<span class="fc" id="L43">    PDF_VERSION(() -&gt; {</span>
+<span class="fc" id="L44">        var version = System.getProperty(PDFVERSION_PROP, PdfVersion.VERSION_1_5.name());</span>
+        try {
+            //we make sure the default supplier returns a valid version
+<span class="fc" id="L47">            PdfVersion.valueOf(version);</span>
+<span class="fc" id="L48">            return version;</span>
+<span class="fc" id="L49">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L50">            return PdfVersion.VERSION_1_5.name();</span>
+        }
+    }),
+<span class="fc" id="L53">    PREFIX(() -&gt; System.getProperty(PREFIX_PROP, &quot;PDFsam_&quot;));</span>
+
+    private final Supplier&lt;String&gt; defaultSupplier;
+
+<span class="fc" id="L57">    StringPersistentProperty(Supplier&lt;String&gt; supplier) {</span>
+<span class="fc" id="L58">        this.defaultSupplier = supplier;</span>
+<span class="fc" id="L59">    }</span>
+
+    @Override
+    public String key() {
+<span class="fc" id="L63">        return this.name().toLowerCase();</span>
+    }
+
+    @Override
+    public Supplier&lt;String&gt; defaultSupplier() {
+<span class="fc" id="L68">        return defaultSupplier;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
