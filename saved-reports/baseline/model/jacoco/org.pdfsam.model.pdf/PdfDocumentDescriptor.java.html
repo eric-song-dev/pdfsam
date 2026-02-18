@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfDocumentDescriptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.pdf</a> &gt; <span class="el_source">PdfDocumentDescriptor.java</span></div><h1>PdfDocumentDescriptor.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 13/giu/2013
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.pdf;
+
+import javafx.beans.value.ObservableValue;
+import org.apache.commons.lang3.StringUtils;
+import org.pdfsam.i18n.I18nContext;
+import org.pdfsam.model.ObservableAtomicReference;
+import org.sejda.conversion.exception.ConversionException;
+import org.sejda.model.input.PdfFileSource;
+import org.sejda.model.pdf.PdfVersion;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.sejda.commons.util.RequireUtils.requireNotNullArg;
+
+/**
+ * Lightweight pdf document descriptor holding data necessary to fill the selection table and request a task execution.
+ * 
+ * @author Andrea Vacondio
+ * 
+ */
+public class PdfDocumentDescriptor {
+
+<span class="fc" id="L51">    private final ObservableAtomicReference&lt;PdfDescriptorLoadingStatus&gt; loadingStatus = new ObservableAtomicReference&lt;&gt;(</span>
+            PdfDescriptorLoadingStatus.INITIAL);
+<span class="fc" id="L53">    private final AtomicInteger references = new AtomicInteger(1);</span>
+<span class="fc" id="L54">    private final ObservableAtomicReference&lt;Integer&gt; pages = new ObservableAtomicReference&lt;&gt;(0);</span>
+    private String password;
+    private final File file;
+    private PdfVersion version;
+<span class="fc" id="L58">    private final Map&lt;String, String&gt; metadata = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L59">    private SortedSet&lt;Integer&gt; validBookmarksLevels = Collections.emptySortedSet();</span>
+
+<span class="fc" id="L61">    private PdfDocumentDescriptor(File file, String password) {</span>
+<span class="fc" id="L62">        requireNotNullArg(file, &quot;Input file is mandatory&quot;);</span>
+<span class="fc" id="L63">        this.file = file;</span>
+<span class="fc" id="L64">        this.password = password;</span>
+<span class="fc" id="L65">    }</span>
+
+    public String getFileName() {
+<span class="fc" id="L68">        return file.getName();</span>
+    }
+
+    public PdfFileSource toPdfFileSource() {
+        try {
+<span class="fc" id="L73">            return PdfFileSource.newInstanceWithPassword(file, password);</span>
+<span class="fc" id="L74">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L75">            throw new ConversionException(</span>
+<span class="fc" id="L76">                    I18nContext.i18n().tr(&quot;File \&quot;{0}\&quot; does not exist or is invalid&quot;, file.getName()), e);</span>
+        }
+    }
+
+    /**
+     * @param key
+     * @return the information dictionary value for the key or an empty string
+     */
+    public String getInformation(String key) {
+<span class="fc" id="L85">        return StringUtils.defaultString(metadata.get(key));</span>
+    }
+
+    public void setInformationDictionary(Map&lt;String, String&gt; info) {
+<span class="fc" id="L89">        metadata.clear();</span>
+<span class="fc" id="L90">        metadata.putAll(info);</span>
+<span class="fc" id="L91">    }</span>
+
+    public void putInformation(String key, String value) {
+<span class="fc" id="L94">        metadata.put(key, value);</span>
+<span class="fc" id="L95">    }</span>
+
+    public void pages(int newValue) {
+<span class="nc" id="L98">        this.pages.set(newValue);</span>
+<span class="nc" id="L99">    }</span>
+
+    public ObservableValue&lt;PdfDescriptorLoadingStatus&gt; loadingStatus() {
+<span class="fc" id="L102">        return loadingStatus;</span>
+    }
+
+    public ObservableValue&lt;Integer&gt; pages() {
+<span class="nc" id="L106">        return pages;</span>
+    }
+
+    /**
+     * Sets the status to the given status destination
+     * 
+     * @param destination
+     */
+    public void moveStatusTo(PdfDescriptorLoadingStatus destination) {
+<span class="fc" id="L115">        loadingStatus.set(loadingStatus.getValue().moveTo(destination));</span>
+<span class="fc" id="L116">    }</span>
+
+    public String getPassword() {
+<span class="fc" id="L119">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="nc" id="L123">        this.password = password;</span>
+<span class="nc" id="L124">    }</span>
+
+    public boolean hasPassword() {
+<span class="nc" id="L127">        return isNotBlank(password);</span>
+    }
+
+    public String getVersionString() {
+<span class="fc" id="L131">        return ofNullable(version).map(PdfVersion::getVersionString).orElse(&quot;&quot;);</span>
+    }
+
+    public PdfVersion getVersion() {
+<span class="nc" id="L135">        return version;</span>
+    }
+
+    public void setVersion(PdfVersion version) {
+<span class="fc" id="L139">        this.version = version;</span>
+<span class="fc" id="L140">    }</span>
+
+    public File getFile() {
+<span class="nc" id="L143">        return file;</span>
+    }
+
+    public void setValidBookmarksLevels(Set&lt;Integer&gt; levels) {
+<span class="nc" id="L147">        this.validBookmarksLevels = new TreeSet&lt;&gt;();</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (nonNull(levels)) {</span>
+<span class="nc" id="L149">            this.validBookmarksLevels.addAll(levels);</span>
+        }
+<span class="nc" id="L151">    }</span>
+
+    public SortedSet&lt;Integer&gt; getValidBookmarksLevels() {
+<span class="nc" id="L154">        return validBookmarksLevels;</span>
+    }
+
+    /**
+     * @return true if this descriptor has references, this can be false if the user deletes it from the UI and it tells to any service performing or about to perform some action
+     *         on the descriptor that it should be ignored since not relevant anymore.
+     */
+    public boolean hasReferences() {
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        return references.get() &gt; 0;</span>
+    }
+
+    /**
+     * @return true if the descriptor has become invalid because of the release
+     */
+    public boolean release() {
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        return this.references.decrementAndGet() &lt;= 0;</span>
+    }
+
+    public void releaseAll() {
+<span class="fc" id="L173">        this.references.set(0);</span>
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * Increment the number of reference
+     */
+    public PdfDocumentDescriptor retain() {
+<span class="fc" id="L180">        this.references.incrementAndGet();</span>
+<span class="fc" id="L181">        return this;</span>
+    }
+
+    public static PdfDocumentDescriptor newDescriptor(File file, String password) {
+<span class="fc" id="L185">        return new PdfDocumentDescriptor(file, password);</span>
+    }
+
+    public static PdfDocumentDescriptor newDescriptorNoPassword(File file) {
+<span class="fc" id="L189">        return new PdfDocumentDescriptor(file, null);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

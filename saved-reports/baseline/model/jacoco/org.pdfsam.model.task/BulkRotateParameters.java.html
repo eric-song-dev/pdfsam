@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BulkRotateParameters.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.task</a> &gt; <span class="el_source">BulkRotateParameters.java</span></div><h1>BulkRotateParameters.java</h1><pre class="source lang-java linenums">/*
+ * Created on 21 giu 2016
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ * This file is part of Sejda.
+ *
+ * Sejda is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Sejda is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Sejda.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.task;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.sejda.model.output.SingleOrMultipleTaskOutput;
+import org.sejda.model.parameter.base.AbstractPdfOutputParameters;
+import org.sejda.model.parameter.base.SingleOrMultipleOutputTaskParameters;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Parameters to perform rotations to a multiple input PDF sources.
+ * 
+ * @author Andrea Vacondio
+ *
+ */
+<span class="fc" id="L40">public class BulkRotateParameters extends AbstractPdfOutputParameters implements SingleOrMultipleOutputTaskParameters {</span>
+
+<span class="fc" id="L42">    private String outputPrefix = &quot;&quot;;</span>
+
+<span class="fc" id="L44">    @NotEmpty</span>
+    @Valid
+    private final Set&lt;PdfRotationInput&gt; inputSet = new HashSet&lt;&gt;();
+    @Valid
+    @NotNull
+    private SingleOrMultipleTaskOutput output;
+
+    @Override
+    public SingleOrMultipleTaskOutput getOutput() {
+<span class="fc" id="L53">        return output;</span>
+    }
+
+    @Override
+    public void setOutput(SingleOrMultipleTaskOutput output) {
+<span class="nc" id="L58">        this.output = output;</span>
+<span class="nc" id="L59">    }</span>
+
+    /**
+     * @return an unmodifiable view of the inputSet
+     */
+    public Set&lt;PdfRotationInput&gt; getInputSet() {
+<span class="nc" id="L65">        return Collections.unmodifiableSet(inputSet);</span>
+    }
+
+    public void addInput(PdfRotationInput input) {
+<span class="fc" id="L69">        this.inputSet.add(input);</span>
+<span class="fc" id="L70">    }</span>
+
+    @Override
+    public String getOutputPrefix() {
+<span class="nc" id="L74">        return outputPrefix;</span>
+    }
+
+    @Override
+    public void setOutputPrefix(String outputPrefix) {
+<span class="nc" id="L79">        this.outputPrefix = outputPrefix;</span>
+<span class="nc" id="L80">    }</span>
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L84">        return new HashCodeBuilder().appendSuper(super.hashCode()).append(outputPrefix).append(inputSet).toHashCode();</span>
+    }
+
+    @Override
+    public boolean equals(Object other) {
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (this == other) {</span>
+<span class="fc" id="L90">            return true;</span>
+        }
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (!(other instanceof BulkRotateParameters params)) {</span>
+<span class="fc" id="L93">            return false;</span>
+        }
+<span class="fc" id="L95">        return new EqualsBuilder().appendSuper(super.equals(other)).append(outputPrefix, params.outputPrefix)</span>
+<span class="fc" id="L96">                .append(output, params.output).append(inputSet, params.inputSet).isEquals();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

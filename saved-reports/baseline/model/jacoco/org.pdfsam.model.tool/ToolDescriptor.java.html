@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ToolDescriptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.tool</a> &gt; <span class="el_source">ToolDescriptor.java</span></div><h1>ToolDescriptor.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 28/nov/2012
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.tool;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.sejda.commons.util.RequireUtils.requireNotBlank;
+
+/**
+ * Metadata to describe a {@link Tool}.
+ *
+ * @param name        a human-readable, internationalized name for the tool
+ * @param description a human-readable, internationalized description for the tool
+ * @param priority    a rough indicator of the popularity of the tool. It can be used to present tools to the users in an order that has more chances of being
+ *                    of interest for them.
+ * @param supportUrl  an optional URL pointing at the location where a support resource can be found. This is intended to be a webpage where support material for the tool can be found
+ * @author Andrea Vacondio
+ */
+public record ToolDescriptor(ToolCategory category, String name, String description, int priority, String supportUrl,
+                             List&lt;ToolInputOutputType&gt; inputTypes) {
+
+    public ToolDescriptor(ToolCategory category, String name, String description, int priority, String supportUrl,
+<span class="fc" id="L43">            List&lt;ToolInputOutputType&gt; inputTypes) {</span>
+<span class="fc" id="L44">        requireNotBlank(name, &quot;Tool name cannot be blank&quot;);</span>
+<span class="fc" id="L45">        requireNotBlank(description, &quot;Tool description cannot be blank&quot;);</span>
+<span class="fc" id="L46">        this.category = requireNonNull(category);</span>
+<span class="fc" id="L47">        this.name = name;</span>
+<span class="fc" id="L48">        this.description = description;</span>
+<span class="fc" id="L49">        this.priority = priority;</span>
+<span class="fc" id="L50">        this.supportUrl = defaultIfBlank(supportUrl, null);</span>
+<span class="fc" id="L51">        this.inputTypes = requireNonNull(inputTypes);</span>
+<span class="fc" id="L52">    }</span>
+
+    ToolDescriptor(ToolCategory category, String name, String description, int priority, String supportUrl,
+            ToolInputOutputType... inputTypes) {
+<span class="fc" id="L56">        this(category, name, description, priority, supportUrl,</span>
+<span class="pc bnc" id="L57" title="All 2 branches missed.">                ofNullable(inputTypes).filter(t -&gt; t.length &gt; 0).map(Arrays::asList)</span>
+<span class="fc" id="L58">                        .orElseGet(() -&gt; List.of(ToolInputOutputType.OTHER)));</span>
+<span class="fc" id="L59">    }</span>
+
+    /**
+     * @param type
+     * @return true if this module has the given input type
+     */
+    public boolean hasInputType(ToolInputOutputType type) {
+<span class="nc" id="L66">        return inputTypes.contains(type);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

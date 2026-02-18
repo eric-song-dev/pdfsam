@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfRotationInput.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.task</a> &gt; <span class="el_source">PdfRotationInput.java</span></div><h1>PdfRotationInput.java</h1><pre class="source lang-java linenums">/*
+ * Created on 20 giu 2016
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ * This file is part of Sejda.
+ *
+ * Sejda is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Sejda is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Sejda.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.task;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.sejda.commons.collection.NullSafeSet;
+import org.sejda.model.input.PdfSource;
+import org.sejda.model.pdf.page.PagesSelection;
+import org.sejda.model.pdf.page.PredefinedSetOfPages;
+import org.sejda.model.rotation.Rotation;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
+
+/**
+ * Input source for a rotation task
+ *
+ * @author Andrea Vacondio
+ */
+public class PdfRotationInput implements PagesSelection {
+
+    @Valid
+    @NotNull
+    public final PdfSource&lt;?&gt; source;
+    @Valid
+    @NotNull
+    public final Rotation rotation;
+<span class="fc" id="L53">    @Valid</span>
+    @NotEmpty
+    private final Set&lt;PagesSelection&gt; pageSelection = new NullSafeSet&lt;&gt;();
+
+    /**
+     * @param source
+     * @param rotation
+     * @param pages    the pages selection to apply the rotation. If no page selection is specified, all pages are rotated
+     */
+<span class="fc" id="L62">    public PdfRotationInput(PdfSource&lt;?&gt; source, Rotation rotation, PagesSelection... pages) {</span>
+<span class="fc" id="L63">        requireNonNull(rotation, &quot;A rotation is expected&quot;);</span>
+<span class="fc" id="L64">        requireNonNull(source, &quot;A valid source is expected&quot;);</span>
+<span class="fc" id="L65">        this.source = source;</span>
+<span class="fc" id="L66">        this.rotation = rotation;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        this.pageSelection.addAll(ofNullable(pages).filter(p -&gt; p.length &gt; 0).map(Arrays::asList)</span>
+<span class="fc" id="L68">                .orElseGet(() -&gt; List.of(PredefinedSetOfPages.ALL_PAGES)));</span>
+<span class="fc" id="L69">    }</span>
+
+    @Override
+    public Set&lt;Integer&gt; getPages(int totalNumberOfPage) {
+<span class="fc" id="L73">        Set&lt;Integer&gt; set = new NullSafeSet&lt;&gt;();</span>
+<span class="fc" id="L74">        pageSelection.stream().flatMap(s -&gt; s.getPages(totalNumberOfPage).stream()).forEach(set::add);</span>
+<span class="fc" id="L75">        return set;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L80">        return new ToStringBuilder(this).append(&quot;source&quot;, source).append(&quot;pageSelection&quot;, pageSelection)</span>
+<span class="nc" id="L81">                .append(&quot;rotation&quot;, rotation).toString();</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L86">        return new HashCodeBuilder().append(source).append(pageSelection).append(rotation).toHashCode();</span>
+    }
+
+    @Override
+    public boolean equals(Object other) {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (this == other) {</span>
+<span class="nc" id="L92">            return true;</span>
+        }
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (!(other instanceof PdfRotationInput input)) {</span>
+<span class="nc" id="L95">            return false;</span>
+        }
+<span class="nc" id="L97">        return new EqualsBuilder().append(source, input.source).append(rotation, input.rotation)</span>
+<span class="nc" id="L98">                .append(pageSelection, input.pageSelection).isEquals();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

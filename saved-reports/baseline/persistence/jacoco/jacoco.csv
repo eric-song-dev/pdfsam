@@ -1,0 +1,5 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+PDFsam persistence,org.pdfsam.persistence,DefaultEntityRepository,90,81,0,4,19,23,10,8,10,6
+PDFsam persistence,org.pdfsam.persistence,PreferencesRepository,22,307,0,2,4,61,0,14,0,13
+PDFsam persistence,org.pdfsam.persistence,Repository,16,16,0,0,2,2,2,3,2,3
+PDFsam persistence,org.pdfsam.persistence,PersistenceException,8,5,0,0,4,2,2,1,2,1

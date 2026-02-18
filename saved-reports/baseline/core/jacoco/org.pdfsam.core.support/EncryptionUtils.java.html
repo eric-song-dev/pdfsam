@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EncryptionUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.support</a> &gt; <span class="el_source">EncryptionUtils.java</span></div><h1>EncryptionUtils.java</h1><pre class="source lang-java linenums">/* 
+ * This file is part of the PDF Split And Merge source code
+ * Created on 2 gen 2019
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as 
+ * published by the Free Software Foundation, either version 3 of the 
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.support;
+
+import static java.util.Objects.nonNull;
+
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author Andrea Vacondio
+ *
+ */
+public final class EncryptionUtils {
+<span class="fc" id="L39">    private final static Logger LOG = LoggerFactory.getLogger(EncryptionUtils.class);</span>
+
+    public static final String T_KEY = &quot;j!$CEnv#8G6_61gSYpt%0H%CVXhxDv-E8UHOHQyDIz%OFPE%YsaCoNH&amp;+^d1G_ZevL!8MAEiQ+dERnvl_4grOQMmDQ2vhn_55FXDbLNMfs!U|$y7iA|dXef3dmf*&amp;KOa&quot;;
+
+    private EncryptionUtils() {
+        // hide
+    }
+
+    /**
+     * @param value
+     * @return the encrypted version of value or null if value is null
+     */
+    public static String encrypt(String value) {
+        try {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            if (nonNull(value)) {</span>
+<span class="fc" id="L54">                Cipher cipher = Cipher.getInstance(&quot;AES/ECB/PKCS5Padding&quot;);</span>
+<span class="fc" id="L55">                cipher.init(Cipher.ENCRYPT_MODE,</span>
+<span class="fc" id="L56">                        new SecretKeySpec(Arrays.copyOf(T_KEY.getBytes(StandardCharsets.UTF_8), 16), &quot;AES&quot;));</span>
+<span class="fc" id="L57">                return Base64.getEncoder().encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)));</span>
+            }
+<span class="nc" id="L59">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L60">            LOG.error(&quot;An error occurred while encrypting a string&quot;, e);</span>
+<span class="fc" id="L61">        }</span>
+<span class="fc" id="L62">        return null;</span>
+
+    }
+
+    /**
+     * @param value
+     * @return the decrypted version of value of null if value is null
+     */
+    public static String decrypt(String value) {
+        try {
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (nonNull(value)) {</span>
+<span class="fc" id="L73">                Cipher cipher = Cipher.getInstance(&quot;AES/ECB/PKCS5Padding&quot;);</span>
+<span class="fc" id="L74">                cipher.init(Cipher.DECRYPT_MODE,</span>
+<span class="fc" id="L75">                        new SecretKeySpec(Arrays.copyOf(T_KEY.getBytes(StandardCharsets.UTF_8), 16), &quot;AES&quot;));</span>
+<span class="fc" id="L76">                return new String(cipher.doFinal(Base64.getDecoder().decode(value)), StandardCharsets.UTF_8);</span>
+            }
+<span class="nc" id="L78">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L79">            LOG.error(&quot;An error occurred while decrypting a string&quot;, e);</span>
+<span class="fc" id="L80">        }</span>
+
+<span class="fc" id="L82">        return null;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.io</a> &gt; <span class="el_source">FileType.java</span></div><h1>FileType.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 18/ott/2013
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.io;
+
+import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.io.IOCase;
+
+import static org.apache.commons.io.FilenameUtils.wildcardMatch;
+
+/**
+ * Types of file handled by PDFsam
+ *
+ * @author Andrea Vacondio
+ */
+<span class="nc" id="L31">public enum FileType {</span>
+<span class="nc" id="L32">    ALL(&quot;(*.*)&quot;, &quot;*.*&quot;, &quot;*&quot;),</span>
+<span class="nc" id="L33">    CSV(&quot;(*.csv)&quot;, &quot;*.csv&quot;, &quot;*.CSV&quot;),</span>
+<span class="nc" id="L34">    PDF(&quot;(*.pdf)&quot;, &quot;*.pdf&quot;, &quot;*.PDF&quot;),</span>
+<span class="nc" id="L35">    TXT(&quot;(*.txt)&quot;, &quot;*.txt&quot;, &quot;*.TXT&quot;),</span>
+<span class="nc" id="L36">    LOG(&quot;(*.log, *.txt)&quot;, &quot;*.log&quot;, &quot;*.txt&quot;, &quot;*.LOG&quot;, &quot;*.TXT&quot;),</span>
+<span class="nc" id="L37">    XML(&quot;(*.xml)&quot;, &quot;*.xml&quot;, &quot;*.XML&quot;),</span>
+<span class="nc" id="L38">    JSON(&quot;(*.json)&quot;, &quot;*.json&quot;, &quot;*.JSON&quot;),</span>
+<span class="nc" id="L39">    HTML(&quot;(*.html, *.htm)&quot;, &quot;*.htm&quot;, &quot;*.html&quot;, &quot;*.HTM&quot;, &quot;*.HTML&quot;);</span>
+    private final ExtensionFilter filter;
+
+<span class="nc" id="L42">    FileType(String description, String... extensions) {</span>
+<span class="nc" id="L43">        this.filter = new ExtensionFilter(description, extensions);</span>
+<span class="nc" id="L44">    }</span>
+
+    public ExtensionFilter getFilter() {
+<span class="nc" id="L47">        return filter;</span>
+    }
+
+    /**
+     * @param filename
+     * @return true if the input filename is of this {@link FileType}
+     */
+    public boolean matches(String filename) {
+<span class="nc" id="L55">        return getFilter().getExtensions().stream().anyMatch(ext -&gt; wildcardMatch(filename, ext, IOCase.INSENSITIVE));</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
