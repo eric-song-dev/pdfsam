@@ -38,7 +38,12 @@ This report documents the **structural (white-box) testing** process of **PDFsam
 
 ### 1.2 Why Structural Testing Matters
 
-
+| Benefit | Description |
+|---------|-------------|
+| **Reveals Hidden Defects** | Tests derived from implementation details uncover bugs in error-handling paths, boundary conditions, and rarely-executed branches |
+| **Coverage Measurement** | Tools like JaCoCo quantify how much code is exercised (line, branch, method coverage) |
+| **Complementary** | Fills gaps left by specification-based (black-box) tests |
+| **Regression Safety** | High structural coverage provides confidence that future changes don't introduce regressions |
 
 ### 1.3 Coverage Metrics
 
@@ -88,17 +93,27 @@ We ran `mvn clean test` with JaCoCo on three non-GUI modules **before** adding a
 
 ```bash
 # Run tests with JaCoCo
-mvn clean test jacoco:report -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am
+mvn clean test jacoco:report -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am "-Dtest=!ZhenyuWhiteBoxTest,!KingsonWhiteBoxTest,!ZianWhiteBoxTest" "-Dsurefire.failIfNoSpecifiedTests=false"   
+
+# Create backup directory
+New-Item -ItemType Directory -Force -Path "saved-reports\baseline\model"
+New-Item -ItemType Directory -Force -Path "saved-reports\baseline\core"
+New-Item -ItemType Directory -Force -Path "saved-reports\baseline\persistence"
+
+# Copy the report to the backup directory
+Copy-Item -Recurse -Path "pdfsam-model\target\site\jacoco\*" -Destination "saved-reports\baseline\model"
+Copy-Item -Recurse -Path "pdfsam-core\target\site\jacoco\*" -Destination "saved-reports\baseline\core"
+Copy-Item -Recurse -Path "pdfsam-persistence\target\site\jacoco\*" -Destination "saved-reports\baseline\persistence"
 
 # View CSV reports
 cat pdfsam-model/target/site/jacoco/jacoco.csv
 cat pdfsam-core/target/site/jacoco/jacoco.csv
-cat pdfsam-persistence/target/site/jacoco/jacoco.csv
+cat saved-reports/baseline/persistence/jacoco.csv
 
 # View HTML reports
 open pdfsam-model/target/site/jacoco/index.html
 open pdfsam-core/target/site/jacoco/index.html
-open pdfsam-persistence/target/site/jacoco/index.html
+open saved-reports/baseline/persistence/index.html
 ```
 
 ### 2.2 Modules Under Test
@@ -206,6 +221,26 @@ NativeOpenUrlRequest                          line_miss=0 line_cov=3 br_miss=0 b
 NativeOpenFileRequest                         line_miss=0 line_cov=3 br_miss=0 br_cov=0
 LoadWorkspaceResponse                         line_miss=0 line_cov=6 br_miss=0 br_cov=0
 InputPdfArgumentsLoadRequest                  line_miss=0 line_cov=2 br_miss=0 br_cov=2
+```
+
+#### pdfsam-persistence
+
+| Class | Lines Missed | Lines Covered | Line Coverage |
+|-------|:------------:|:-------------:|:-------------:|
+| DefaultEntityRepository |      19      |      23       |      55%      |
+| PreferencesRepository |      16      |      49       |      75%      |
+| PersistenceException |      4       |       2       |      33%      |
+| Repository |      2       |       2       |      50%      |
+
+To extract line coverage from the CSV report:
+
+```bash
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-persistence/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
+
+DefaultEntityRepository                       line_miss=19 line_cov=23 br_miss=0 br_cov=4
+PreferencesRepository                         line_miss=16 line_cov=49 br_miss=0 br_cov=2
+PersistenceException                          line_miss=4 line_cov=2 br_miss=0 br_cov=0
+Repository                                    line_miss=2 line_cov=2 br_miss=0 br_cov=0
 ```
 
 <div style="page-break-after: always;"></div>
@@ -420,6 +455,130 @@ BaseToolBound                                 line_miss=0 line_cov=5 br_miss=0 b
 
 <div style="page-break-after: always;"></div>
 
+## ✨ 5. Zian's White Box Testing: pdfsam-persistence
+
+**Test File**: <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java">pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java</a>
+
+### 5.1 Target Classes
+
+| Class | Package | Key Uncovered Code                                                                                                                |
+|-------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `PersistenceException` | `org.pdfsam.persistence` | Two constructors: message-only, cause-only                                                                                        |
+| `DefaultEntityRepository` | `org.pdfsam.persistence` | Primitive type accessors: `saveInt`/`getInt`, `saveLong`/`getLong`, `saveString`/`getString`, `saveBoolean`/`getBoolean`, `keys()` |
+| `PreferencesRepository` | `org.pdfsam.persistence` | `saveInt`/`getInt`, `saveLong`/`getLong`, `saveBoolean`/`getBoolean`, `keys()`, `clean`                     |
+| `Repository` | `org.pdfsam.persistence` | `getInt`, `getLong`|
+
+### 5.2 Test Implementation
+
+**27 test methods** were implemented to achieve comprehensive coverage, specifically targeting primitive types, interface default methods, and hard-to-reach exception handling blocks.
+
+#### PersistenceException Tests
+
+```java
+@Test
+@DisplayName("PersistenceException: message-only constructor")
+void persistenceExceptionMessageOnly() {
+    PersistenceException ex = new PersistenceException("test error");
+    assertEquals("test error", ex.getMessage());
+    assertNull(ex.getCause());
+}
+
+
+@Test
+@DisplayName("PersistenceException: cause-only constructor")
+void persistenceExceptionCauseOnly() {
+    Throwable cause = new RuntimeException("root cause");
+    PersistenceException ex = new PersistenceException(cause);
+    assertEquals(cause, ex.getCause());
+}
+```
+
+#### DefaultEntityRepository Primitive Accessors
+
+```java
+@Test
+@DisplayName("DefaultEntityRepository: saveInt and getInt")
+void entityRepoSaveGetInt() throws PersistenceException {
+    entityRepo.saveInt("intKey", 42);
+    assertEquals(42, entityRepo.getInt("intKey", 0));
+}
+
+@Test
+@DisplayName("DefaultEntityRepository: getInt default value")
+void entityRepoGetIntDefault() throws PersistenceException {
+    entityRepo.delete("intMissing");
+    assertEquals(-1, entityRepo.getInt("intMissing", -1));
+}
+
+@Test
+@DisplayName("DefaultEntityRepository: saveLong and getLong")
+void entityRepoSaveGetLong() throws PersistenceException {
+    entityRepo.saveLong("longKey", 123456789L);
+    assertEquals(123456789L, entityRepo.getLong("longKey", 0L));
+}
+```
+
+#### Repository Tests
+
+```java
+@Test
+@DisplayName("Repository: getInt uses Supplier for default value")
+void repositoryGetIntWithSupplier() throws PersistenceException {
+    entityRepo.delete("intSuppMissing");
+
+    assertEquals(100, entityRepo.getInt("intSuppMissing", () -> 100));
+}
+
+@Test
+@DisplayName("Repository: getLong uses Supplier for default value")
+void repositoryGetLongWithSupplier() throws PersistenceException {
+    entityRepo.delete("longSuppMissing");
+
+    assertEquals(999L, entityRepo.getLong("longSuppMissing", () -> 999L));
+}
+```
+
+#### PreferencesRepository Tests
+
+```java
+@Nested
+class ZianExceptionCoverageTest {
+    private final PreferencesRepository brokenRepo = new PreferencesRepository("/invalid//double/slash/path");
+
+    @Test
+    @DisplayName("getInt triggers PersistenceException on invalid path")
+    void getIntException() {
+        assertThrows(PersistenceException.class, () -> brokenRepo.getInt("anyKey", 0));
+    }
+
+    @Test
+    @DisplayName("getLong triggers PersistenceException on invalid path")
+    void getLongException() {
+        assertThrows(PersistenceException.class, () -> brokenRepo.getLong("anyKey", 0L));
+    }
+}
+```
+
+### 5.3 Coverage Improvement
+
+| Class                            | Before | After | Δ Lines |
+|----------------------------------|:------:|:-----:|:-------:|
+| DefaultEntityRepository          |   23   |  42   | **+19** |
+| PersistenceException             |   2    |   6   | **+4**  |
+| PreferenceRepository (interface) |   49   |  61   | **+12** |
+| Repository                       |   2    |   4   | **+2**  |
+| **Total**                        |   76   |  113  | **+37** |
+
+```bash
+$ awk -F, 'NR>1 {printf "%-45s line_miss=%s line_cov=%s br_miss=%s br_cov=%s\n", $3, $8, $9, $6, $7}' pdfsam-persistence/target/site/jacoco/jacoco.csv | sort -t= -k2 -rn
+
+PreferencesRepository                         line_miss=4 line_cov=61 br_miss=0 br_cov=2
+Repository                                    line_miss=0 line_cov=4 br_miss=0 br_cov=0
+PersistenceException                          line_miss=0 line_cov=6 br_miss=0 br_cov=0
+DefaultEntityRepository                       line_miss=0 line_cov=42 br_miss=0 br_cov=4
+```
+
+<div style="page-break-after: always;"></div>
 
 ## 📋 6. Test Implementation Summary
 
@@ -429,7 +588,7 @@ BaseToolBound                                 line_miss=0 line_cov=5 br_miss=0 b
 |------|----------|--------|
 | <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-model/src/test/java/org/pdfsam/model/ZhenyuWhiteBoxTest.java">ZhenyuWhiteBoxTest.java</a> | `pdfsam-model/src/test/java/org/pdfsam/model/` | Zhenyu Song |
 |  |  | Kingson Zhang |
-|  |  | Zian Xu |
+| <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java">ZianWhiteBoxTest.java</a> | `pdfsam-persistence/src/test/java/org/pdfsam/persistence/` | Zian Xu |
 
 ### 6.2 Running the White Box Tests
 
@@ -441,6 +600,16 @@ mvn clean test jacoco:report -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am
 mvn test jacoco:report -pl pdfsam-model -Dtest=ZhenyuWhiteBoxTest
 mvn test jacoco:report -pl pdfsam-core -Dtest=KingsonWhiteBoxTest
 mvn test jacoco:report -pl pdfsam-persistence -Dtest=ZianWhiteBoxTest
+
+# View CSV reports
+cat pdfsam-model/target/site/jacoco/jacoco.csv
+cat pdfsam-core/target/site/jacoco/jacoco.csv
+cat pdfsam-persistence/target/site/jacoco/jacoco.csv
+
+# View HTML reports
+open pdfsam-model/target/site/jacoco/index.html
+open pdfsam-core/target/site/jacoco/index.html
+open pdfsam-persistence/target/site/jacoco/index.html
 ```
 
 ### 6.3 Test Results
@@ -451,18 +620,24 @@ Tests run: 44, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
+```bash
+$ mvn test jacoco:report -pl pdfsam-persistence -Dtest=ZianWhiteBoxTest
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
 <div style="page-break-after: always;"></div>
 
 ## 🎯 7. Conclusion
 
 This report documents our application of **structural (white-box) testing** to PDFsam Basic through three team members testing three non-GUI modules:
 
-| Team Member | Module | Δ New Tests | Δ Lines | Δ Branches |
-|------------|--------|:---------:|:-------:|:-------:|
-| **Zhenyu Song** | pdfsam-model | **+44** | **+56** | **+5** |
-|  | pdfsam-core |  |  |  |
-|  | pdfsam-persistence |  |  |  |
-| **Total** | |  |  |  |
+| Team Member     | Module | Δ New Tests | Δ Lines | Δ Branches |
+|-----------------|--------|:-----------:|:-------:|:----------:|
+| **Zhenyu Song** | pdfsam-model |   **+44**   | **+56** |   **+5**   |
+|                 | pdfsam-core |             |         |            |
+| **Zian Xu**     | pdfsam-persistence |   **+27**   | **+37** |   **0**    |
+| **Total**       | |             |         |            |
 
 ### Key Takeaways
 

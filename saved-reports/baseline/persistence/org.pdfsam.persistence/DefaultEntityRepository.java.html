@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultEntityRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam persistence</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.persistence</a> &gt; <span class="el_source">DefaultEntityRepository.java</span></div><h1>DefaultEntityRepository.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 13 sep 2022
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.persistence;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.prefs.Preferences;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+import static org.sejda.commons.util.RequireUtils.requireNotBlank;
+import static org.sejda.commons.util.RequireUtils.requireNotNullArg;
+
+/**
+ * A DAO providing basic CRUD functionalities for {@link String} keys and &lt;T&gt; values.
+ *
+ * @param &lt;T&gt; the type of the persisted values
+ * @author Andrea Vacondio
+ */
+public class DefaultEntityRepository&lt;T&gt; implements EntityRepository&lt;T&gt; {
+
+    private final ObjectMapper mapper;
+    private final Class&lt;T&gt; clazz;
+    private final PreferencesRepository repo;
+
+<span class="fc" id="L46">    public DefaultEntityRepository(String path, ObjectMapper mapper, Class&lt;T&gt; clazz) {</span>
+<span class="fc" id="L47">        requireNotNullArg(mapper, &quot;Mapper cannot be null&quot;);</span>
+<span class="fc" id="L48">        requireNotNullArg(clazz, &quot;Type class cannot be null&quot;);</span>
+<span class="fc" id="L49">        this.repo = new PreferencesRepository(path);</span>
+<span class="fc" id="L50">        this.mapper = mapper;</span>
+<span class="fc" id="L51">        this.clazz = clazz;</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * @return the stored value or an empty optional
+     * @throws PersistenceException if this node (or an ancestor) has been removed or if key contains the null control character, code point U+0000.
+     * @see Preferences#get(String, String)
+     */
+    @Override
+    public Optional&lt;T&gt; get(String key) throws PersistenceException {
+        try {
+<span class="fc" id="L62">            var value = ofNullable(this.repo.getString(key, (String) null));</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (value.isPresent()) {</span>
+<span class="fc" id="L64">                return ofNullable(mapper.readValue(value.get(), clazz));</span>
+            }
+<span class="nc" id="L66">        } catch (IOException e) {</span>
+<span class="nc" id="L67">            throw new PersistenceException(String.format(&quot;Unable to get entity: [key '%s']&quot;, key), e);</span>
+<span class="fc" id="L68">        }</span>
+<span class="fc" id="L69">        return empty();</span>
+    }
+
+    @Override
+    public T get(String key, T defaultValue) {
+<span class="fc" id="L74">        return get(key).orElse(defaultValue);</span>
+    }
+
+    @Override
+    public int getInt(String key, int defaultValue) {
+<span class="nc" id="L79">        return this.repo.getInt(key, defaultValue);</span>
+    }
+
+    @Override
+    public long getLong(String key, long defaultValue) {
+<span class="nc" id="L84">        return this.repo.getLong(key, defaultValue);</span>
+    }
+
+    @Override
+    public String getString(String key, String defaultValue) {
+<span class="nc" id="L89">        return this.repo.getString(key, defaultValue);</span>
+    }
+
+    @Override
+    public String getString(String key, Supplier&lt;String&gt; supplier) {
+<span class="nc" id="L94">        return this.repo.getString(key, supplier);</span>
+    }
+
+    @Override
+    public boolean getBoolean(String key, boolean defaultValue) {
+<span class="nc" id="L99">        return this.repo.getBoolean(key, defaultValue);</span>
+    }
+
+    /**
+     * Saves to the persistence layer the given value.
+     *
+     * @param key
+     * @param entity the entity to persist. Can be null.
+     * @throws PersistenceException if this node (or an ancestor) has been removed or if key contains the null control character, code point U+0000.
+     * @see Preferences#put(String, String)
+     */
+    @Override
+    public void save(String key, T entity) throws PersistenceException {
+        // fast fail
+<span class="fc" id="L113">        requireNotBlank(key, &quot;Key cannot be blank&quot;);</span>
+        try {
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            if (nonNull(entity)) {</span>
+<span class="fc" id="L116">                this.repo.saveString(key, mapper.writeValueAsString(entity));</span>
+            } else {
+<span class="fc" id="L118">                this.repo.delete(key);</span>
+            }
+<span class="nc" id="L120">        } catch (IOException e) {</span>
+<span class="nc" id="L121">            throw new PersistenceException(</span>
+<span class="nc" id="L122">                    String.format(&quot;Unable to store entity: [key '%s', entity '%s']&quot;, key, entity), e);</span>
+<span class="fc" id="L123">        }</span>
+<span class="fc" id="L124">    }</span>
+
+    @Override
+    public void saveInt(String key, int value) throws PersistenceException {
+<span class="nc" id="L128">        this.repo.saveInt(key, value);</span>
+<span class="nc" id="L129">    }</span>
+
+    @Override
+    public void saveLong(String key, long value) throws PersistenceException {
+<span class="nc" id="L133">        this.repo.saveLong(key, value);</span>
+<span class="nc" id="L134">    }</span>
+
+    @Override
+    public void saveString(String key, String value) throws PersistenceException {
+<span class="nc" id="L138">        this.repo.saveString(key, value);</span>
+<span class="nc" id="L139">    }</span>
+
+    @Override
+    public void saveBoolean(String key, boolean value) {
+<span class="nc" id="L143">        this.repo.saveBoolean(key, value);</span>
+<span class="nc" id="L144">    }</span>
+
+    @Override
+    public String[] keys() {
+<span class="nc" id="L148">        return this.repo.keys();</span>
+    }
+
+    @Override
+    public void delete(String key) throws PersistenceException {
+<span class="fc" id="L153">        this.repo.delete(key);</span>
+<span class="fc" id="L154">    }</span>
+
+    @Override
+    public void clean() throws PersistenceException {
+<span class="fc" id="L158">        this.repo.clean();</span>
+<span class="fc" id="L159">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
