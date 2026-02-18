@@ -55,6 +55,8 @@ Common structural coverage criteria include:
 - **Instruction Coverage**: Percentage of bytecode instructions executed
 
 ### 1.4 Tool: JaCoCo
+In order to see the test coverage of the current tests in the application, we used a tool called Java Code Coverage (JaCoCo). This plugin can be installed by including it in the <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pom.xml">pom.xml file</a>.
+
 
 ```xml
 <plugin>
@@ -81,7 +83,7 @@ Common structural coverage criteria include:
 </plugin>
 ```
 
-Reports are located at `<module>/target/site/jacoco/jacoco.csv`.
+Reports are located at in the JaCoCo saved reports folder <a href="https://github.com/eric-song-dev/pdfsam/blob/master/saved-reports\baseline\persistence\jacoco.csv">here</a>.
 
 <div style="page-break-after: always;"></div>
 
@@ -455,6 +457,85 @@ BaseToolBound                                 line_miss=0 line_cov=5 br_miss=0 b
 
 <div style="page-break-after: always;"></div>
 
+## ✨ 4. Kingson's White Box Testing: pdfsam-core
+
+**Test File**: <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-core/src/test/java/org/pdfsam/core/context/KingsonWhiteBoxTest.java">pdfsam-core/src/test/java/org/pdfsam/core/context/KingsonWhiteBoxTest.java</a>
+
+### 4.1 Target Classes
+
+| Class | Package | Key Uncovered Code |
+|-------|---------|-------------------|
+| `ConversionUtils` | `org.pdfsam.core.support.params` | Blank/null input, "last" keyword, open-ended ranges, prefixed dash |
+| `ApplicationRuntimeState` | `org.pdfsam.core.context` | `maybeWorkingPath` null/blank/file/dir/string, `activeToolValue`, `workspace`, `theme` |
+| `ObjectCollectionWriter` | `org.pdfsam.core.support.io` | `writeContent().to(Path)` with content and empty list |
+
+### 4.2 Test Implementation
+
+**22 test methods** targeting boundary cases and uncovered branches.
+
+#### ConversionUtils Edge Cases
+
+```java
+@Test
+void toPageRangeSetBlankReturnsEmpty() {
+    var result = ConversionUtils.toPageRangeSet("");
+    assertTrue(result.isEmpty());
+}
+
+@Test
+void toPagesSelectionSetLastPage() {
+    Set<PagesSelection> result = ConversionUtils.toPagesSelectionSet("last");
+    assertEquals(1, result.size());
+    assertTrue(result.contains(PagesSelection.LAST_PAGE));
+}
+
+@Test
+void toPageRangeSetOpenEndedRange() {
+    Set<PageRange> result = ConversionUtils.toPageRangeSet("5-");
+    assertEquals(1, result.size());
+    PageRange range = result.iterator().next();
+    assertEquals(5, range.getStart());
+    assertTrue(range.isUnbounded());
+}
+```
+
+#### ApplicationRuntimeState Tests
+
+```java
+@Test
+void workingPathInitiallyEmpty() {
+    ApplicationRuntimeState state = new ApplicationRuntimeState();
+    assertEquals(Optional.empty(), state.workingPathValue());
+}
+
+@Test
+void maybeWorkingPathWithValidDirectory(@TempDir Path tempDir) {
+    ApplicationRuntimeState state = new ApplicationRuntimeState();
+    state.maybeWorkingPath(tempDir);
+    assertEquals(Optional.of(tempDir), state.workingPathValue());
+}
+
+@Test
+void maybeWorkingPathWithRegularFile(@TempDir Path tempDir) throws IOException {
+    Path file = Files.createTempFile(tempDir, "test", ".txt");
+    ApplicationRuntimeState state = new ApplicationRuntimeState();
+    state.maybeWorkingPath(file);
+    // Should resolve to parent directory
+    assertEquals(Optional.of(tempDir), state.workingPathValue());
+}
+```
+
+### 4.3 Coverage Improvement
+
+| Class | Before | After | Δ Lines |
+|-------|:------:|:-----:|:-------:|
+| ConversionUtils | 29 | 32 | **+3** |
+| ApplicationRuntimeState | 27 | 33 | **+6** |
+| **Total** | | | **+9** |
+
+<div style="page-break-after: always;"></div>
+
+
 ## ✨ 5. Zian's White Box Testing: pdfsam-persistence
 
 **Test File**: <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java">pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java</a>
@@ -587,7 +668,7 @@ DefaultEntityRepository                       line_miss=0 line_cov=42 br_miss=0 
 | File | Location | Author |
 |------|----------|--------|
 | <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-model/src/test/java/org/pdfsam/model/ZhenyuWhiteBoxTest.java">ZhenyuWhiteBoxTest.java</a> | `pdfsam-model/src/test/java/org/pdfsam/model/` | Zhenyu Song |
-|  |  | Kingson Zhang |
+| <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-core/src/test/java/org/pdfsam/core/context/KingsonWhiteBoxTest.java">KingsonWhiteBoxTest.java</a> | `pdfsam-core/src/test/java/org/pdfsam/core/context` | Kingson Zhang |
 | <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-persistence/src/test/java/org/pdfsam/persistence/ZianWhiteBoxTest.java">ZianWhiteBoxTest.java</a> | `pdfsam-persistence/src/test/java/org/pdfsam/persistence/` | Zian Xu |
 
 ### 6.2 Running the White Box Tests
@@ -621,6 +702,12 @@ BUILD SUCCESS
 ```
 
 ```bash
+$ mvn test jacoco:report -pl pdfsam-model -Dtest=KingsonWhiteBoxTest
+Tests run: 22, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+```bash
 $ mvn test jacoco:report -pl pdfsam-persistence -Dtest=ZianWhiteBoxTest
 Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
@@ -635,10 +722,14 @@ This report documents our application of **structural (white-box) testing** to P
 | Team Member     | Module | Δ New Tests | Δ Lines | Δ Branches |
 |-----------------|--------|:-----------:|:-------:|:----------:|
 | **Zhenyu Song** | pdfsam-model |   **+44**   | **+56** |   **+5**   |
-|                 | pdfsam-core |             |         |            |
+| **Kingson Zhang** | pdfsam-core | **+22** | **+9** | **+1**
 | **Zian Xu**     | pdfsam-persistence |   **+27**   | **+37** |   **0**    |
-| **Total**       | |             |         |            |
+| **Total** | | **+93** | **+102** | **+6**
 
 ### Key Takeaways
 
+- **JaCoCo** provides systematic, automated coverage measurement in CSV/XML format
+- **Structural testing** complements the partition testing (Part 1) and FSM testing (Part 2) by revealing untested implementation paths
+- **Coverage-guided test design** helps prioritize which classes and branches need additional tests
 
+The white-box tests complement the **partition testing** from Part 1 and **FSM testing** from Part 2, providing a third perspective on the same codebase and moving toward comprehensive test coverage.
