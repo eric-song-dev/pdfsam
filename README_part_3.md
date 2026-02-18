@@ -457,9 +457,9 @@ BUILD SUCCESS
 
 This report documents our application of **structural (white-box) testing** to PDFsam Basic through three team members testing three non-GUI modules:
 
-| Team Member | Module | New Tests | Lines | Branches |
+| Team Member | Module | Δ New Tests | Δ Lines | Δ Branches |
 |------------|--------|:---------:|:-------:|:-------:|
-| **Zhenyu Song** | pdfsam-model | 44 | **+56** | **+5** |
+| **Zhenyu Song** | pdfsam-model | **+44** | **+56** | **+5** |
 |  | pdfsam-core |  |  |  |
 |  | pdfsam-persistence |  |  |  |
 | **Total** | |  |  |  |
