@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Validators.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.support.validation</a> &gt; <span class="el_source">Validators.java</span></div><h1>Validators.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 16/nov/2012
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.support.validation;
+
+import org.apache.commons.lang3.StringUtils;
+import org.pdfsam.model.io.FileType;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+/**
+ * Provides Factory methods to create validators
+ * 
+ * @author Andrea Vacondio
+ * 
+ */
+public final class Validators {
+
+    private Validators() {
+        // hide
+    }
+
+    /**
+     * @return a new instance of a validator that always returns false
+     */
+    public static Validator&lt;String&gt; alwaysFalse() {
+<span class="fc" id="L48">        return v -&gt; false;</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for a on blank input string
+     */
+    public static Validator&lt;String&gt; nonBlank() {
+<span class="fc" id="L55">        return StringUtils::isNotBlank;</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for a input string representing a positive integer number
+     */
+    public static Validator&lt;String&gt; positiveInteger() {
+<span class="fc" id="L62">        return new PositiveIntegerStringValidator();</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for a input string representing a positive integer number in the given range
+     */
+    public static Validator&lt;String&gt; positiveIntRange(int lower, int upper) {
+<span class="fc" id="L69">        return new PositiveIntRangeStringValidator(lower, upper);</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for a input string representing an integer contained in the given set
+     */
+    public static Validator&lt;String&gt; containedInteger(Set&lt;Integer&gt; validValues) {
+<span class="fc" id="L76">        return new ContainedIntegerValidator(validValues);</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for an input string representing an existing file. Blank string are invalid.
+     * @see Validators#validEmpty(Validator)
+     */
+    public static Validator&lt;String&gt; existingFile() {
+<span class="fc" id="L84">        return new FileValidator();</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for an input string representing an existing file of the given type. Blank string are invalid.
+     * @param type
+     *            type of the file represented by the input string
+     * @see Validators#validEmpty(Validator)
+     */
+    public static Validator&lt;String&gt; existingFileType(FileType type) {
+<span class="fc" id="L94">        return new FileTypeValidator(type, true);</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for an input string representing a file of the given type. Blank string are invalid.
+     * @param type
+     *            type of the file represented by the input string
+     * @param mustExist
+     *            if true the validator enforces an existing file
+     * @see Validators#validEmpty(Validator)
+     */
+    public static Validator&lt;String&gt; fileType(FileType type, boolean mustExist) {
+<span class="fc" id="L106">        return new FileTypeValidator(type, mustExist);</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for an input string representing an existing directory. Blank string are invalid.
+     * @see Validators#validEmpty(Validator)
+     */
+    public static Validator&lt;String&gt; existingDirectory() {
+<span class="fc bfc" id="L114" title="All 4 branches covered.">        return v -&gt; isNotBlank(v) &amp;&amp; Files.isDirectory(Paths.get(v));</span>
+    }
+
+    /**
+     * @return a new instance of a validator checking for an input string matching the given regex.
+     * @see Validators#validEmpty(Validator)
+     */
+    public static Validator&lt;String&gt; regexMatching(String regex) {
+<span class="fc" id="L122">        return new RegexValidator(regex);</span>
+    }
+
+    /**
+     * @param validator
+     * @return a new instance of the validator that considers empty string as valid, it delegates otherwise
+     */
+    public static Validator&lt;String&gt; validEmpty(Validator&lt;String&gt; validator) {
+<span class="fc" id="L130">        return v -&gt; {</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">            if (isNotEmpty(v)) {</span>
+<span class="fc" id="L132">                return validator.isValid(v);</span>
+            }
+<span class="fc" id="L134">            return true;</span>
+        };
+    }
+
+    /**
+     * @param validator
+     * @return a new instance of a validator that negates the given one
+     */
+    public static Validator&lt;String&gt; not(Validator&lt;String&gt; validator) {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        return v -&gt; !validator.isValid(v);</span>
+    }
+
+    /**
+     * @param validators
+     * @return a new instance of a validator that returns true if all the given validators return true
+     */
+    public static Validator&lt;String&gt; and(Validator&lt;String&gt;... validators) {
+<span class="fc" id="L151">        return v -&gt; Arrays.stream(validators).allMatch(validator -&gt; validator.isValid(v));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

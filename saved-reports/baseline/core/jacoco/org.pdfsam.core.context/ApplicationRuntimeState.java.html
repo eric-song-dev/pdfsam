@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationRuntimeState.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.context</a> &gt; <span class="el_source">ApplicationRuntimeState.java</span></div><h1>ApplicationRuntimeState.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 19/09/22
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.context;
+
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import org.apache.commons.lang3.StringUtils;
+import org.pdfsam.model.tool.Tool;
+import org.pdfsam.model.ui.workspace.Workspace;
+import org.pdfsam.theme.Theme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+
+/**
+ * Application Runtime state
+ *
+ * @author Andrea Vacondio
+ */
+public class ApplicationRuntimeState {
+
+<span class="fc" id="L55">    private static final Logger LOG = LoggerFactory.getLogger(ApplicationRuntimeState.class);</span>
+
+    private Path defaultWorkingPath;
+    private Workspace workspace;
+<span class="fc" id="L59">    private final SimpleObjectProperty&lt;Optional&lt;Path&gt;&gt; workingPath = new SimpleObjectProperty&lt;&gt;(empty());</span>
+<span class="fc" id="L60">    private final SimpleObjectProperty&lt;Optional&lt;Tool&gt;&gt; activeTool = new SimpleObjectProperty&lt;&gt;(empty());</span>
+<span class="fc" id="L61">    private final SimpleObjectProperty&lt;Theme&gt; theme = new SimpleObjectProperty&lt;&gt;();</span>
+    private final Future&lt;Map&lt;String, Tool&gt;&gt; tools;
+
+<span class="fc" id="L64">    ApplicationRuntimeState() {</span>
+<span class="fc" id="L65">        try (var executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(&quot;tools-loader-&quot;, 0).factory())) {</span>
+<span class="fc" id="L66">            this.tools = executor.submit(() -&gt; ServiceLoader.load(Tool.class).stream().map(ServiceLoader.Provider::get)</span>
+<span class="fc" id="L67">                    .collect(toMap(Tool::id, identity())));</span>
+        }
+<span class="fc" id="L69">    }</span>
+
+    /**
+     * Sets the current working path for the application
+     *
+     * @param path the current working directory or the parent in case of regular file. A null value clears the current working path
+     */
+    void workingPath(Path path) {
+<span class="fc" id="L77">        workingPath.set(ofNullable(path).map(p -&gt; {</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">            if (Files.isRegularFile(p)) {</span>
+<span class="fc" id="L79">                return p.getParent();</span>
+            }
+<span class="fc" id="L81">            return p;</span>
+<span class="fc" id="L82">        }).filter(Files::isDirectory));</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * Sets the current working path for the application unless there is a default one already set.
+     * This method does nothing in case there is a user defined default working path.
+     *
+     * @param path a valid path string. A blank or null or non directory value clears the current working path
+     */
+    public void maybeWorkingPath(String path) {
+<span class="fc" id="L92">        this.maybeWorkingPath(ofNullable(path).filter(StringUtils::isNotBlank).map(Paths::get).orElse(null));</span>
+<span class="fc" id="L93">    }</span>
+
+    /**
+     * Sets the current working path for the application unless there is a default one already set.
+     * This method does nothing in case there is a user defined default working path.
+     *
+     * @param path the current working directory or the parent in case of regular file. A null value clears the current working path
+     * @see #workingPath(Path)
+     */
+    public void maybeWorkingPath(Path path) {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (Objects.isNull(defaultWorkingPath)) {</span>
+<span class="fc" id="L104">            workingPath(path);</span>
+        }
+<span class="fc" id="L106">    }</span>
+
+    /**
+     * @return the current workingPath value
+     */
+    public Optional&lt;Path&gt; workingPathValue() {
+<span class="nc" id="L112">        return workingPath.getValue();</span>
+    }
+
+    public ObservableValue&lt;Optional&lt;Path&gt;&gt; workingPath() {
+<span class="fc" id="L116">        return workingPath;</span>
+    }
+
+    /**
+     * Merges the provided workspace into the current one.
+     */
+    public void mergeWorkspace(Workspace workspace) {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (nonNull(this.workspace)) {</span>
+<span class="nc" id="L124">            this.workspace = this.workspace.withFile(workspace.file());</span>
+<span class="nc" id="L125">            this.workspace.merge(workspace.data());</span>
+        } else {
+<span class="nc" id="L127">            this.workspace = workspace;</span>
+        }
+<span class="nc" id="L129">    }</span>
+
+    public void workspace(Workspace workspace) {
+<span class="nc" id="L132">        this.workspace = workspace;</span>
+<span class="nc" id="L133">    }</span>
+
+    public Workspace workspace() {
+<span class="nc" id="L136">        return this.workspace;</span>
+    }
+
+    /**
+     * @return the available tools
+     */
+    public Map&lt;String, Tool&gt; tools() {
+        try {
+<span class="nc" id="L144">            return this.tools.get();</span>
+<span class="nc" id="L145">        } catch (ExecutionException | InterruptedException e) {</span>
+<span class="nc" id="L146">            LOG.error(&quot;Unable to load tools list&quot;, e);</span>
+        }
+<span class="nc" id="L148">        return Collections.emptyMap();</span>
+    }
+
+    /**
+     * @param activeTool the tool currently active
+     */
+    public void activeTool(Tool activeTool) {
+<span class="fc" id="L155">        this.activeTool.set(ofNullable(activeTool));</span>
+<span class="fc" id="L156">    }</span>
+
+    /**
+     * @return the current active tool value
+     */
+    public Optional&lt;Tool&gt; activeToolValue() {
+<span class="nc" id="L162">        return activeTool.getValue();</span>
+    }
+
+    public ObservableValue&lt;Optional&lt;Tool&gt;&gt; activeTool() {
+<span class="fc" id="L166">        return activeTool;</span>
+    }
+
+    /**
+     * @return the current theme
+     */
+    public ObservableValue&lt;Theme&gt; theme() {
+<span class="nc" id="L173">        return this.theme;</span>
+    }
+
+    /**
+     * Sets the application theme
+     */
+    public void theme(Theme theme) {
+<span class="nc" id="L180">        ofNullable(theme).ifPresent(this.theme::set);</span>
+<span class="nc" id="L181">    }</span>
+
+    void defaultWorkingPath(Path defaultWorkingPath) {
+<span class="fc" id="L184">        this.defaultWorkingPath = defaultWorkingPath;</span>
+<span class="fc" id="L185">        workingPath(defaultWorkingPath);</span>
+<span class="fc" id="L186">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

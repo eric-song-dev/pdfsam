@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BooleanPersistentProperty.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.context</a> &gt; <span class="el_source">BooleanPersistentProperty.java</span></div><h1>BooleanPersistentProperty.java</h1><pre class="source lang-java linenums">package org.pdfsam.core.context;
+/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 18/09/22
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+
+import java.util.function.Supplier;
+
+import static org.pdfsam.core.ConfigurableSystemProperty.CHECK_FOR_NEWS_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.CHECK_FOR_UPDATES_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.DISCARD_BOOKMARKS_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.DONATE_NOTIFICATION_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.FETCH_PREMIUM_MODULES_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.OVERWRITE_OUTPUT_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.PDF_COMPRESSION_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.PLAY_SOUNDS_PROP;
+import static org.pdfsam.core.ConfigurableSystemProperty.SMART_OUTPUT_PROP;
+
+/**
+ * @author Andrea Vacondio
+ */
+<span class="fc" id="L36">public enum BooleanPersistentProperty implements PersistentProperty&lt;Boolean&gt; {</span>
+<span class="fc" id="L37">    PLAY_SOUNDS(() -&gt; Boolean.parseBoolean(System.getProperty(PLAY_SOUNDS_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L38">    DONATION_NOTIFICATION(</span>
+<span class="fc" id="L39">            () -&gt; Boolean.parseBoolean(System.getProperty(DONATE_NOTIFICATION_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L40">    PREMIUM_MODULES(</span>
+<span class="fc" id="L41">            () -&gt; Boolean.parseBoolean(System.getProperty(FETCH_PREMIUM_MODULES_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L42">    SMART_OUTPUT(() -&gt; Boolean.parseBoolean(System.getProperty(SMART_OUTPUT_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L43">    CHECK_UPDATES(() -&gt; Boolean.parseBoolean(System.getProperty(CHECK_FOR_UPDATES_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L44">    CHECK_FOR_NEWS(() -&gt; Boolean.parseBoolean(System.getProperty(CHECK_FOR_NEWS_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L45">    OVERWRITE_OUTPUT(() -&gt; Boolean.parseBoolean(System.getProperty(OVERWRITE_OUTPUT_PROP, Boolean.FALSE.toString()))),</span>
+<span class="fc" id="L46">    PDF_COMPRESSION_ENABLED(</span>
+<span class="fc" id="L47">            () -&gt; Boolean.parseBoolean(System.getProperty(PDF_COMPRESSION_PROP, Boolean.TRUE.toString()))),</span>
+<span class="fc" id="L48">    CLEAR_CONFIRMATION(() -&gt; Boolean.TRUE),</span>
+<span class="fc" id="L49">    SAVE_WORKSPACE_ON_EXIT(() -&gt; Boolean.FALSE),</span>
+<span class="fc" id="L50">    SAVE_PWD_IN_WORKSPACE(() -&gt; Boolean.FALSE),</span>
+<span class="pc" id="L51">    SIDEBAR_EXPANDED_STATE(() -&gt; Boolean.TRUE),</span>
+<span class="fc" id="L52">    DISCARD_BOOKMARKS(() -&gt; Boolean.parseBoolean(System.getProperty(DISCARD_BOOKMARKS_PROP, Boolean.FALSE.toString())));</span>
+
+    private final Supplier&lt;Boolean&gt; defaultSupplier;
+
+<span class="fc" id="L56">    BooleanPersistentProperty(Supplier&lt;Boolean&gt; supplier) {</span>
+<span class="fc" id="L57">        this.defaultSupplier = supplier;</span>
+<span class="fc" id="L58">    }</span>
+
+    @Override
+    public String key() {
+<span class="fc" id="L62">        return this.name().toLowerCase();</span>
+    }
+
+    @Override
+    public Supplier&lt;Boolean&gt; defaultSupplier() {
+<span class="fc" id="L67">        return defaultSupplier;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

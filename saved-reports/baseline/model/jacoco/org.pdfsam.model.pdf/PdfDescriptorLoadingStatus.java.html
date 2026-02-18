@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfDescriptorLoadingStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.pdf</a> &gt; <span class="el_source">PdfDescriptorLoadingStatus.java</span></div><h1>PdfDescriptorLoadingStatus.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 18/mag/2014
+ * Copyright 2017 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.pdf;
+
+import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.unicons.UniconsLine;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.pdfsam.i18n.I18nContext.i18n;
+
+/**
+ * Possible loading status for a descriptor
+ *
+ * @author Andrea Vacondio
+ */
+<span class="fc" id="L36">public enum PdfDescriptorLoadingStatus {</span>
+<span class="fc" id="L37">    INITIAL,</span>
+<span class="fc" id="L38">    REQUESTED(UniconsLine.CLOCK, &quot;&quot;),</span>
+<span class="fc" id="L39">    LOADING(UniconsLine.ANGLE_RIGHT, &quot;&quot;),</span>
+<span class="fc" id="L40">    LOADED,</span>
+<span class="fc" id="L41">    LOADED_WITH_USER_PWD_DECRYPTION(UniconsLine.UNLOCK, i18n().tr(&quot;Valid user password provided.&quot;)),</span>
+<span class="fc" id="L42">    ENCRYPTED(UniconsLine.LOCK, i18n().tr(&quot;This document is encrypted, click to provide a password.&quot;), &quot;with-warnings&quot;),</span>
+<span class="fc" id="L43">    WITH_ERRORS(UniconsLine.EXCLAMATION_CIRCLE, i18n().tr(&quot;An error has occurred, click for more details.&quot;),</span>
+            &quot;with-errors&quot;);
+
+    static {
+<span class="fc" id="L47">        INITIAL.setValidDestinationStatus(REQUESTED, WITH_ERRORS);</span>
+<span class="fc" id="L48">        ENCRYPTED.setValidDestinationStatus(REQUESTED, WITH_ERRORS);</span>
+<span class="fc" id="L49">        LOADING.setValidDestinationStatus(LOADED, LOADED_WITH_USER_PWD_DECRYPTION, ENCRYPTED, WITH_ERRORS);</span>
+<span class="fc" id="L50">        REQUESTED.setValidDestinationStatus(LOADING, WITH_ERRORS);</span>
+<span class="fc" id="L51">    }</span>
+
+<span class="fc" id="L53">    private final Set&lt;PdfDescriptorLoadingStatus&gt; validNext = new HashSet&lt;&gt;();</span>
+    private final Ikon icon;
+    private final String description;
+    private final String style;
+
+    PdfDescriptorLoadingStatus() {
+<span class="fc" id="L59">        this(null, &quot;&quot;);</span>
+<span class="fc" id="L60">    }</span>
+
+    PdfDescriptorLoadingStatus(Ikon icon, String description) {
+<span class="fc" id="L63">        this(icon, description, &quot;&quot;);</span>
+<span class="fc" id="L64">    }</span>
+
+<span class="fc" id="L66">    PdfDescriptorLoadingStatus(Ikon icon, String description, String style) {</span>
+<span class="fc" id="L67">        this.icon = icon;</span>
+<span class="fc" id="L68">        this.description = defaultString(description);</span>
+<span class="fc" id="L69">        this.style = defaultString(style);</span>
+<span class="fc" id="L70">    }</span>
+
+    public Ikon getIcon() {
+<span class="fc" id="L73">        return icon;</span>
+    }
+
+    public String getDescription() {
+<span class="fc" id="L77">        return description;</span>
+    }
+
+    public String getStyle() {
+<span class="fc" id="L81">        return style;</span>
+    }
+
+    private void setValidDestinationStatus(PdfDescriptorLoadingStatus... canMoveTo) {
+<span class="fc" id="L85">        validNext.addAll(Arrays.asList(canMoveTo));</span>
+<span class="fc" id="L86">    }</span>
+
+    /**
+     * @param dest
+     * @return true if the {@link PdfDescriptorLoadingStatus} can move to the given destination status
+     */
+    public boolean canMoveTo(PdfDescriptorLoadingStatus dest) {
+<span class="fc" id="L93">        return validNext.contains(dest);</span>
+    }
+
+    /**
+     * Moves the current status to the destination one if allowed
+     * 
+     * @param dest
+     * @return the destination status
+     */
+    public PdfDescriptorLoadingStatus moveTo(PdfDescriptorLoadingStatus dest) {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (canMoveTo(dest)) {</span>
+<span class="fc" id="L104">            return dest;</span>
+        }
+<span class="fc" id="L106">        throw new IllegalStateException(&quot;Cannot move status from &quot; + this + &quot; to &quot; + dest);</span>
+    }
+
+    public boolean isFinal() {
+<span class="fc" id="L110">        return validNext.isEmpty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

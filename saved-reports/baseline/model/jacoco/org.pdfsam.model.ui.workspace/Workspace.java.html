@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Workspace.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam model</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.model.ui.workspace</a> &gt; <span class="el_source">Workspace.java</span></div><h1>Workspace.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 23/09/2025
+ * Copyright 2025 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.model.ui.workspace;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Objects;
+
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+/**
+ * Data class to keep track of the loaded workspace and its source file.
+ *
+ * @author Alessandro Parisi
+ */
+<span class="fc" id="L33">public record Workspace(Map&lt;String, Map&lt;String, String&gt;&gt; data, File file) {</span>
+
+    public void merge(Map&lt;String, Map&lt;String, String&gt;&gt; otherData) {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (Objects.nonNull(otherData)) {</span>
+<span class="fc" id="L37">            data.putAll(otherData);</span>
+        }
+<span class="fc" id="L39">    }</span>
+
+    /**
+     * Checks if this workspace's data is equal to the given data by verifying that all tools' data in the latter
+     * are present here and that every key-value pair is the same.
+     *
+     * @see Map#equals(Object)
+     */
+    public boolean containsAllIgnoreEmpty(Map&lt;String, Map&lt;String, String&gt;&gt; otherData) {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (Map.Entry&lt;String, Map&lt;String, String&gt;&gt; e : otherData.entrySet()) {</span>
+
+<span class="fc" id="L50">            Map&lt;String, String&gt; toolData = data.get(e.getKey());</span>
+<span class="fc bfc" id="L51" title="All 4 branches covered.">            if (toolData == null || !toolData.equals(</span>
+<span class="fc" id="L52">                    e.getValue().entrySet().stream().filter(entry -&gt; isNotEmpty(entry.getValue()))</span>
+<span class="fc" id="L53">                            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)))) {</span>
+<span class="fc" id="L54">                return false;</span>
+            }
+<span class="fc" id="L56">        }</span>
+<span class="fc" id="L57">        return true;</span>
+    }
+
+    public Workspace withFile(File file) {
+<span class="nc" id="L61">        return new Workspace(data, file);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

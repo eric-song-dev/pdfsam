@@ -95,27 +95,25 @@ We ran `mvn clean test` with JaCoCo on three non-GUI modules **before** adding a
 
 ```bash
 # Run tests with JaCoCo
-mvn clean test jacoco:report -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am "-Dtest=!ZhenyuWhiteBoxTest,!KingsonWhiteBoxTest,!ZianWhiteBoxTest" "-Dsurefire.failIfNoSpecifiedTests=false"   
+mvn clean test jacoco:report -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am '-Dtest=!ZhenyuWhiteBoxTest,!KingsonWhiteBoxTest,!ZianWhiteBoxTest' '-Dsurefire.failIfNoSpecifiedTests=false'
 
 # Create backup directory
-New-Item -ItemType Directory -Force -Path "saved-reports\baseline\model"
-New-Item -ItemType Directory -Force -Path "saved-reports\baseline\core"
-New-Item -ItemType Directory -Force -Path "saved-reports\baseline\persistence"
+mkdir -p saved-reports/baseline/model saved-reports/baseline/core saved-reports/baseline/persistence
 
 # Copy the report to the backup directory
-Copy-Item -Recurse -Path "pdfsam-model\target\site\jacoco\*" -Destination "saved-reports\baseline\model"
-Copy-Item -Recurse -Path "pdfsam-core\target\site\jacoco\*" -Destination "saved-reports\baseline\core"
-Copy-Item -Recurse -Path "pdfsam-persistence\target\site\jacoco\*" -Destination "saved-reports\baseline\persistence"
+cp -r pdfsam-model/target/site/jacoco saved-reports/baseline/model
+cp -r pdfsam-core/target/site/jacoco saved-reports/baseline/core
+cp -r pdfsam-persistence/target/site/jacoco saved-reports/baseline/persistence
 
 # View CSV reports
-cat pdfsam-model/target/site/jacoco/jacoco.csv
-cat pdfsam-core/target/site/jacoco/jacoco.csv
-cat saved-reports/baseline/persistence/jacoco.csv
+cat saved-reports/baseline/model/jacoco/jacoco.csv
+cat saved-reports/baseline/core/jacoco/jacoco.csv
+cat saved-reports/baseline/persistence/jacoco/jacoco.csv
 
 # View HTML reports
-open pdfsam-model/target/site/jacoco/index.html
-open pdfsam-core/target/site/jacoco/index.html
-open saved-reports/baseline/persistence/index.html
+open saved-reports/baseline/model/jacoco/index.html
+open saved-reports/baseline/core/jacoco/index.html
+open saved-reports/baseline/persistence/jacoco/index.html
 ```
 
 ### 2.2 Modules Under Test
