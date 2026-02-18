@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileChooserWithWorkingDirectory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PDFsam core</a> &gt; <a href="index.source.html" class="el_package">org.pdfsam.core.io</a> &gt; <span class="el_source">FileChooserWithWorkingDirectory.java</span></div><h1>FileChooserWithWorkingDirectory.java</h1><pre class="source lang-java linenums">/*
+ * This file is part of the PDF Split And Merge source code
+ * Created on 28 sep 2022
+ * Copyright 2022 by Sober Lemur S.r.l. (info@soberlemur.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.pdfsam.core.io;
+
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import org.pdfsam.model.io.FileType;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.Arrays.stream;
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static java.util.function.Predicate.not;
+import static org.pdfsam.core.context.ApplicationContext.app;
+
+/**
+ * A FileChooser that will open pointing to the latest know working directory and can be configured to open single/multiple files or show a save dialog
+ *
+ * @author Andrea Vacondio
+ */
+public class FileChooserWithWorkingDirectory {
+<span class="nc" id="L43">    private final FileChooser wrapped = new FileChooser();</span>
+
+<span class="nc" id="L45">    FileChooserWithWorkingDirectory() {</span>
+<span class="nc" id="L46">        app().runtimeState().workingPath().subscribe(p -&gt; wrapped.setInitialDirectory(p.map(Path::toFile).orElse(null)));</span>
+<span class="nc" id="L47">    }</span>
+
+    final void setTitle(String value) {
+<span class="nc" id="L50">        wrapped.setTitle(value);</span>
+<span class="nc" id="L51">    }</span>
+
+    public final void setInitialFileName(String value) {
+<span class="nc" id="L54">        wrapped.setInitialFileName(value);</span>
+<span class="nc" id="L55">    }</span>
+
+    public final void setInitialDirectory(Path value) {
+<span class="nc" id="L58">        wrapped.setInitialDirectory(ofNullable(value).map(Path::toFile).orElse(null));</span>
+<span class="nc" id="L59">    }</span>
+
+    private void sanitizeInitialDirectory() {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (ofNullable(wrapped.getInitialDirectory()).map(File::toPath).filter(not(Files::isDirectory)).isPresent()) {</span>
+<span class="nc" id="L63">            wrapped.setInitialDirectory(null);</span>
+        }
+<span class="nc" id="L65">    }</span>
+
+    /**
+     * Shows a dialog to select multiple files
+     *
+     * @param ownerWindow
+     * @return
+     */
+    public List&lt;Path&gt; showOpenMultipleDialog(Window ownerWindow) {
+<span class="nc" id="L74">        sanitizeInitialDirectory();</span>
+<span class="nc" id="L75">        List&lt;Path&gt; selected = ofNullable(wrapped.showOpenMultipleDialog(ownerWindow)).stream()</span>
+<span class="nc" id="L76">                .flatMap(Collection::stream).map(File::toPath).filter(Files::isRegularFile).toList();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (!selected.isEmpty()) {</span>
+<span class="nc" id="L78">            updateWorkingPath(selected.get(0));</span>
+        }
+<span class="nc" id="L80">        return selected;</span>
+    }
+
+    void setFileTypes(FileType... filters) {
+<span class="nc" id="L84">        wrapped.getExtensionFilters().setAll(stream(filters).map(FileType::getFilter).toList());</span>
+<span class="nc" id="L85">    }</span>
+
+    private Path updateWorkingPath(Path path) {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (nonNull(path)) {</span>
+<span class="nc" id="L89">            app().runtimeState().maybeWorkingPath(path);</span>
+        }
+<span class="nc" id="L91">        return path;</span>
+    }
+
+    private Path singleFileDialog(File file) {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        return ofNullable(file).map(File::toPath).filter(f -&gt; !Files.isDirectory(f)).map(this::updateWorkingPath)</span>
+<span class="nc" id="L96">                .orElse(null);</span>
+
+    }
+
+    /**
+     * Shows a dialog to select/open a single file
+     *
+     * @param ownerWindow
+     * @return
+     */
+    public Path showOpenSingleDialog(Window ownerWindow) {
+<span class="nc" id="L107">        sanitizeInitialDirectory();</span>
+<span class="nc" id="L108">        return singleExistingFileDialog(wrapped.showOpenDialog(ownerWindow));</span>
+    }
+
+    private Path singleExistingFileDialog(File file) {
+<span class="nc" id="L112">        return ofNullable(file).map(File::toPath).filter(Files::isRegularFile).map(this::updateWorkingPath)</span>
+<span class="nc" id="L113">                .orElse(null);</span>
+
+    }
+
+    /**
+     * Shows a dialog to select/save a single file
+     *
+     * @param ownerWindow
+     * @return
+     */
+    public Path showSaveDialog(Window ownerWindow) {
+<span class="nc" id="L124">        sanitizeInitialDirectory();</span>
+<span class="nc" id="L125">        return singleFileDialog(wrapped.showSaveDialog(ownerWindow));</span>
+    }
+
+    /**
+     * Shows a dialog to select a single file or multiple files
+     *
+     * @param ownerWindow
+     * @param multiple
+     * @return
+     */
+    public List&lt;Path&gt; showOpenDialog(Window ownerWindow, boolean multiple) {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (!multiple) {</span>
+<span class="nc" id="L137">            return List.of(showOpenSingleDialog(ownerWindow));</span>
+        }
+<span class="nc" id="L139">        return showOpenMultipleDialog(ownerWindow);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
