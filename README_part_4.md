@@ -89,7 +89,7 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am
+        run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dantrun.skip=true
 
       - name: Upload JaCoCo Reports
         if: always()
