@@ -90,13 +90,4 @@ jobs:
 
       - name: Build and Test
         run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
-
-      - name: Upload JaCoCo Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-reports
-          path: |
-            **/target/site/jacoco/
-          retention-days: 14
 ```
