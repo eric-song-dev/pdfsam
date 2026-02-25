@@ -274,3 +274,285 @@ All **139 tests** passed successfully with **zero failures, errors, or skipped t
 ![image Error Log](screenshot/failure.png)
 
 ![image ci.yml Configuration](screenshot/ci.yml Configuration.png)
+
+## ✨ 5. Zian's CI Configuration
+
+### 5.1 Workflow File
+
+The CI workflow is defined in [`.github/workflows/Zian_ci.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/Zian_ci.yml):
+
+```yaml
+name: Zian_ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install Xvfb (Virtual Framebuffer for Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Run Checkstyle
+        shell: bash
+        run: mvn checkstyle:check --batch-mode -Dmaven.antrun.skip=true -Dcheckstyle.failOnViolation=false
+
+      - name: Build and Test (Linux with Xvfb)
+        if: runner.os == 'Linux'
+        run: xvfb-run mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+
+      - name: Build and Test (Windows & macOS)
+        if: runner.os != 'Linux'
+        shell: bash
+        run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+
+      - name: Upload JaCoCo Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ matrix.os }}
+          path: '**/target/site/jacoco/index.html'
+```
+
+### 5.2 Configuration Walkthrough
+
+#### Trigger Events
+
+```yaml
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+```
+
+The workflow runs on:
+- **Every push** to the `master` branch
+- **Every pull request** targeting the `master` branch
+
+This ensures that both direct commits and PR-based contributions are validated before merging.
+
+#### Runner Environment
+
+```yaml
+  strategy:
+    matrix:
+      os: [ubuntu-latest, windows-latest, macos-latest]
+```
+
+Since PDFsam is a cross-platform desktop application, we implemented a matrix build strategy. GitHub Actions concurrently provisions three separate runners (Linux, Windows, and macOS) to execute the build. This ensures our changes don't introduce OS-specific pathing or compilation bugs.
+
+#### CI Environment Variable
+
+```yaml
+env:
+  CI: "true"
+```
+
+Setting `CI=true` activates our existing Maven CI profile (`no-headless-failing-tests`) defined in `pom.xml`. This profile:
+
+1. **Excludes `NoHeadless` tagged tests** — JavaFX GUI tests that cannot run in a headless CI environment
+2. **Disables module path** for surefire — avoids Java module system complications in CI
+3. **Adds `--enable-preview`** — required for Foreign Function & Memory API features
+4. **Includes `javafx-monocle`** dependency — provides a headless JavaFX rendering backend for tests that use JavaFX components
+
+The relevant Maven profile in [`pom.xml`](https://github.com/eric-song-dev/pdfsam/blob/master/pom.xml):
+
+```xml
+<profile>
+    <activation>
+        <property>
+            <name>env.CI</name>
+            <value>true</value>
+        </property>
+    </activation>
+    <id>no-headless-failing-tests</id>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>NoHeadless</excludedGroups>
+                    <useModulePath>false</useModulePath>
+                    <argLine>--enable-preview</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.pdfsam</groupId>
+            <artifactId>javafx-monocle</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</profile>
+```
+
+#### Java Setup with Caching
+
+```yaml
+- name: Set up JDK 21
+  uses: actions/setup-java@v4
+  with:
+    java-version: '21'
+    distribution: 'temurin'
+    cache: maven
+```
+
+- **Temurin JDK 21**: Matches our development environment requirement (Java 21 with preview features)
+- **Maven caching**: Caches `~/.m2/repository` to speed up subsequent builds by avoiding repeated dependency downloads
+
+#### GUI Testing Support (Xvfb)
+
+```yaml
+- name: Install Xvfb (Virtual Framebuffer for Linux)
+  if: runner.os == 'Linux'
+  run: sudo apt-get update && sudo apt-get install -y xvfb
+```
+
+Since PDFsam relies heavily on JavaFX, running tests in a headless Linux environment typically causes the display server to crash. We conditionally install Xvfb (X virtual framebuffer) on Ubuntu runners. This acts as a virtual display in the background, allowing GUI-dependent tests to execute successfully without a physical monitor.
+
+#### Static Code Analysis (Checkstyle)
+
+```yaml
+- name: Run Checkstyle
+  shell: bash
+  run: mvn checkstyle:check --batch-mode -Dmaven.antrun.skip=true -Dcheckstyle.failOnViolation=false
+```
+
+#### Build and Test Execution
+
+```yaml
+- name: Build and Test (Linux with Xvfb)
+  if: runner.os == 'Linux'
+  run: xvfb-run mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+
+- name: Build and Test (Windows & macOS)
+  if: runner.os != 'Linux'
+  shell: bash
+  run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+```
+
+To accommodate the virtual display server, the execution is split conditionally based on the OS:
+
+- `Linux (xvfb-run)`: Wraps the Maven command with xvfb-run to simulate a display for JavaFX.
+- `Windows & macOS`: Runs the standard Maven command. shell: bash is explicitly set to force Windows runners to use Git Bash instead of PowerShell, ensuring proper parsing of comma-separated module lists and parameters.
+
+- `mvn clean test` — Cleans the build directory, compiles, and runs JUnit tests.
+- `-pl pdfsam-model,pdfsam-core,pdfsam-persistence` — Only builds and tests these three non-GUI modules (the modules we wrote tests for in Parts 1–3)
+- `-am` (also-make) — Also builds any modules that these three depend on (e.g., `pdfsam-i18n`, `pdfsam-themes`)
+- `-Dmaven.antrun.skip=true` — Skips the Ant run plugin tasks (e.g., resource copying or pre-processing steps) that are unnecessary in the CI test environment
+
+This scoped build avoids compiling the full project (20+ modules including GUI components), significantly reducing CI execution time. Since JaCoCo is configured in `pom.xml` to run during the `test` phase, coverage reports are automatically generated.
+
+#### Artifact Collection (JaCoCo)
+
+```yaml
+- name: Upload JaCoCo Coverage Report
+  uses: actions/upload-artifact@v4
+  if: always()
+```
+
+Extracts the JaCoCo HTML test coverage report generated during the Maven test phase and uploads it to the GitHub Actions UI for easy downloading and review, even if previous steps failed (if: always()).
+
+### 5.3 Screenshots
+
+Action run history demonstrating the iterative process from initial build failures to consistent successes.
+![image Zian Workflow](screenshot/ZianHistory.png)
+
+Modified CI workflow configuration (ci.yml) to bypass the problematic plugin by appending a skip parameter.
+![image Zian_ci.yml Configuration](screenshot/ZianDetails.png)
+
+GitHub Actions successfully completed the build-and-test job after modifying the workflow configuration.
+![image Success](screenshot/ZianSuccess.png)
+
+Detailed Maven logs confirming successful compilation and testing across all core modules.
+![image Success Log](screenshot/ZianLogs.png)
+
+<div style="page-break-after: always;"></div>
+
+## 📋 6. Build and Test Results
+
+### 6.1 Triggering the CI Build
+
+After committing the workflow file to the repository, every push to `master` automatically triggers the CI pipeline.
+
+```bash
+# Add the CI workflow file
+git add .github/workflows/Zian_ci.yml
+git commit -m "Add GitHub Actions CI workflow for automated build and testing"
+git push origin master
+```
+
+### 6.2 GitHub Actions Dashboard
+
+After pushing, the CI workflow can be monitored from the **Actions** tab at:
+https://github.com/eric-song-dev/pdfsam/actions
+
+The dashboard shows:
+- **3 parallel workflow runs** (Ubuntu, Windows, macOS) with status (✅ success, ❌ failure, 🔄 in progress)
+- **Run duration** and **trigger event** (push, pull_request)
+- **Detailed logs** for each step of the build process per OS
+
+### 6.3 Build Steps and Output
+
+The CI pipeline executes the following steps across 3 VMs concurrently:
+
+| Step | Description | Expected Duration |
+|------|-------------|:-----------------:|
+| **Checkout** | Clone the repository | ~5s |
+| **Set up JDK 21** | Install Temurin JDK 21, restore Maven cache | ~15s |
+| **Install Xvfb** | Set up virtual display (Ubuntu only) | ~10s |
+| **Build and Test** | Execute `mvn clean test` (using `xvfb-run` on Linux) | ~150s |
+
+### 6.4 Test Execution Summary
+
+The CI build compiles and runs all tests across the three targeted non-GUI modules (`pdfsam-model`, `pdfsam-core`, `pdfsam-persistence`), including both the project's existing test suite and our custom tests from Parts 1–3 (partition tests, FSM tests, and white-box tests).
+
+**Actual CI Output:**
+
+```bash
+[INFO] Tests run: 139, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+```
+
+All **139 tests** passed successfully with **zero failures, errors, or skipped tests**, confirming that the CI pipeline correctly builds and validates the project.
+
+<div style="page-break-after: always;"></div>
+
+## 🧪 7. Zian's Issues and Resolutions
+
+**Problem:** When utilizing the CI matrix strategy, the build passed seamlessly on macOS and Ubuntu but failed exclusively on Windows. The root cause was that GitHub Actions defaults to PowerShell on Windows runners, which incorrectly parsed the comma-separated Maven module list (`-pl pdfsam-model,...`) and `-D` parameters.
+
+**Resolution:** Explicitly declared `shell: bash` for the run steps in the GitHub Actions workflow. This enforced consistent command-line parsing via Git Bash across all operating systems, resolving the Windows-specific build failure.
+
+![image Error Log](screenshot/ZianFailure.png)
+
+![image ci.yml Configuration](screenshot/ZianDetails.png)
