@@ -64,12 +64,20 @@ flowchart LR
 
 ## 🔧 2. CI Configuration
 
-### 2.1 Workflow File
+### 2.1 Workflow Files
 
-The CI workflow is defined in [`.github/workflows/ci.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ci.yml):
+The CI is split into **three independent workflows**, one per team member, each targeting a specific module:
+
+| Workflow File | Owner | Target Module |
+|---------------|-------|---------------|
+| [`ZhenyuCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZhenyuCi.yml) | Zhenyu Song | `pdfsam-model` |
+| [`ZianCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZianCi.yml) | Zian Xu | `pdfsam-persistence` |
+| [`KingsonCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/KingsonCi.yml) | Kingson Zhang | `pdfsam-core` |
+
+#### ZhenyuCi.yml — PDFsam CI on Model
 
 ```yaml
-name: PDFsam CI
+name: PDFsam CI on Model
 
 on:
   push:
@@ -78,7 +86,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-test:
+  build-and-test-on-model:
     runs-on: ubuntu-latest
 
     env:
@@ -96,7 +104,73 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+        run: mvn clean test --batch-mode -pl pdfsam-model -am -Dmaven.antrun.skip=true
+```
+
+#### ZianCi.yml — PDFsam CI on Persistence
+
+```yaml
+name: PDFsam CI on Persistence
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test-on-persistence:
+    runs-on: ubuntu-latest
+
+    env:
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test
+        run: mvn clean test --batch-mode -pl pdfsam-persistence -am -Dmaven.antrun.skip=true
+```
+
+#### KingsonCi.yml — PDFsam CI on Core
+
+```yaml
+name: PDFsam CI on Core
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test-on-core:
+    runs-on: ubuntu-latest
+
+    env:
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test
+        run: mvn clean test --batch-mode -pl pdfsam-core -am -Dmaven.antrun.skip=true
 ```
 
 ### 2.2 Configuration Walkthrough
@@ -188,18 +262,21 @@ The relevant Maven profile in [`pom.xml`](https://github.com/eric-song-dev/pdfsa
 
 #### Build and Test Execution
 
-```yaml
-- name: Build and Test
-  run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
-```
+Each workflow targets a single module with its own `-pl` parameter:
+
+| Workflow | Build Command |
+|----------|---------------|
+| [`ZhenyuCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZhenyuCi.yml) | `mvn clean test --batch-mode -pl pdfsam-model -am -Dmaven.antrun.skip=true` |
+| [`ZianCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZianCi.yml) | `mvn clean test --batch-mode -pl pdfsam-persistence -am -Dmaven.antrun.skip=true` |
+| [`KingsonCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/KingsonCi.yml) | `mvn clean test --batch-mode -pl pdfsam-core -am -Dmaven.antrun.skip=true` |
 
 - `mvn clean test` — Cleans the build directory, compiles, and runs JUnit tests
 - `--batch-mode` — Disables interactive input and produces cleaner log output suitable for CI
-- `-pl pdfsam-model,pdfsam-core,pdfsam-persistence` — Only builds and tests these three non-GUI modules (the modules we wrote tests for in Parts 1–3)
-- `-am` (also-make) — Also builds any modules that these three depend on (e.g., `pdfsam-i18n`, `pdfsam-themes`)
+- `-pl <module>` — Only builds and tests the specified non-GUI module
+- `-am` (also-make) — Also builds any modules that the target depends on (e.g., `pdfsam-i18n`, `pdfsam-themes`)
 - `-Dmaven.antrun.skip=true` — Skips the Ant run plugin tasks (e.g., resource copying or pre-processing steps) that are unnecessary in the CI test environment
 
-This scoped build avoids compiling the full project (20+ modules including GUI components), significantly reducing CI execution time. Since JaCoCo is configured in `pom.xml` to run during the `test` phase, coverage reports are automatically generated.
+Splitting into three independent workflows allows each team member's module to build and report status separately.
 
 ### 2.3 Screenshots
 
@@ -224,9 +301,11 @@ Detailed Maven logs confirming successful compilation and testing across all cor
 After committing the workflow file to the repository, every push to `master` automatically triggers the CI pipeline.
 
 ```bash
-# Add the CI workflow file
-git add .github/workflows/ci.yml
-git commit -m "Add GitHub Actions CI workflow for automated build and testing"
+# Add the CI workflow files
+git add .github/workflows/ZhenyuCi.yml
+git add .github/workflows/ZianCi.yml
+git add .github/workflows/KingsonCi.yml
+git commit -m "Add GitHub Actions CI workflows for automated build and testing"
 git push origin master
 ```
 
@@ -242,26 +321,28 @@ The dashboard shows:
 
 ### 3.3 Build Steps and Output
 
-The CI pipeline executes the following steps:
+Each of the three workflows executes the same steps, differing only in the target module:
 
 | Step | Description | Expected Duration |
 |------|-------------|:-----------------:|
 | **Checkout** | Clone the repository | ~5s |
 | **Set up JDK 21** | Install Temurin JDK 21, restore Maven cache | ~15s |
-| **Build and Test** | `mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true` | ~30s |
+| **Build and Test** | `mvn clean test --batch-mode -pl <module> -am -Dmaven.antrun.skip=true` | ~30s |
 
 ### 3.4 Test Execution Summary
 
 The CI build compiles and runs all tests across the three targeted non-GUI modules (`pdfsam-model`, `pdfsam-core`, `pdfsam-persistence`), including both the project's existing test suite and our custom tests from Parts 1–3 (partition tests, FSM tests, and white-box tests).
 
-**Actual CI Output:**
+**Per-Module CI Output:**
 
-```bash
-[INFO] Tests run: 139, Failures: 0, Errors: 0, Skipped: 0
-[INFO] BUILD SUCCESS
-```
+| Workflow | Module | Tests Run | Failures | Errors | Skipped | Result |
+|----------|--------|:---------:|:--------:|:------:|:-------:|:------:|
+| [`ZhenyuCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZhenyuCi.yml) | `pdfsam-model` | 176 | 0 | 0 | 2 | ✅ BUILD SUCCESS |
+| [`KingsonCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/KingsonCi.yml) | `pdfsam-core` | 139 | 0 | 0 | 0 | ✅ BUILD SUCCESS |
+| [`ZianCi`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZianCi.yml) | `pdfsam-persistence` | 75 | 0 | 0 | 0 | ✅ BUILD SUCCESS |
+| **Total** | | **390** | **0** | **0** | **2** | ✅ **ALL PASSED** |
 
-All **139 tests** passed successfully with **zero failures, errors, or skipped tests**, confirming that the CI pipeline correctly builds and validates the project.
+All **390 tests** across three modules passed successfully with **zero failures or errors**, confirming that the CI pipeline correctly builds and validates the project.
 
 <div style="page-break-after: always;"></div>
 
@@ -273,4 +354,4 @@ All **139 tests** passed successfully with **zero failures, errors, or skipped t
 
 ![image Error Log](screenshot/failure.png)
 
-![image ci.yml Configuration](screenshot/ci.yml Configuration.png)
+![image ci.yml Configuration](screenshot/ci_Configuration.png)
