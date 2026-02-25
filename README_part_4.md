@@ -355,3 +355,66 @@ All **390 tests** across three modules passed successfully with **zero failures 
 ![image Error Log](screenshot/failure.png)
 
 ![image ci.yml Configuration](screenshot/ci_Configuration.png)
+
+## 📋 5. CI Pipeline Summary
+
+### 5.1 CI Architecture
+
+```mermaid
+flowchart TD
+    A[Push to master / PR] --> B[GitHub Actions Triggered]
+    B --> C[ubuntu-latest Runner]
+    C --> D[Checkout Code]
+    D --> E["Set up JDK 21 (Temurin)"]
+    E --> F[Restore Maven Cache]
+    F --> G["mvn clean test --batch-mode"]
+    G --> H{All Tests Pass?}
+    H -->|Yes| I[✅ Build Success]
+    H -->|No| J[❌ Build Failure]
+```
+
+### 5.2 Files Changed
+
+| File | Owner | Action | Description |
+|------|-------|:------:|-------------|
+| [`.github/workflows/ZhenyuCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZhenyuCi.yml) | Zhenyu Song | **NEW** | CI workflow for `pdfsam-model` module |
+| [`.github/workflows/ZianCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/ZianCi.yml) | Zian Xu | **NEW** | CI workflow for `pdfsam-persistence` module |
+| [`.github/workflows/KingsonCi.yml`](https://github.com/eric-song-dev/pdfsam/blob/master/.github/workflows/KingsonCi.yml) | Kingson Zhang | **NEW** | CI workflow for `pdfsam-core` module |
+
+### 5.3 Running CI Locally
+
+To replicate the CI environment locally:
+
+```bash
+# Simulate CI environment
+export CI=true
+
+# Run the same command as CI
+mvn clean test --batch-mode -pl pdfsam-model -am
+mvn clean test --batch-mode -pl pdfsam-core -am
+mvn clean test --batch-mode -pl pdfsam-persistence -am
+```
+
+<div style="page-break-after: always;"></div>
+
+## 🎯 6. Conclusion
+
+This report documents the setup of **Continuous Integration** for PDFsam Basic using **GitHub Actions**.
+
+| Aspect | Details |
+|--------|---------|
+| **CI System** | GitHub Actions |
+| **Trigger** | Push to `master`, Pull Requests to `master` |
+| **Environment** | Ubuntu (latest), JDK 21 (Temurin) |
+| **Build Tool** | Maven with `--batch-mode` |
+| **Test Framework** | JUnit 5 |
+| **Headless Support** | Monocle + `NoHeadless` tag exclusion |
+| **Caching** | Maven dependency caching via `setup-java` |
+
+### Key Takeaways
+
+- **GitHub Actions** provides seamless CI integration for GitHub-hosted repositories with minimal configuration
+- **Leveraging existing Maven profiles** (`no-headless-failing-tests`) made the CI setup straightforward — the project was already prepared for CI environments
+- **Automatic test execution** on every push ensures that all regression tests (Part 1 partition tests, Part 2 FSM tests, Part 3 white-box tests) are continuously validated
+
+The CI pipeline complements the testing efforts from **Part 1** (partition testing), **Part 2** (FSM testing), and **Part 3** (white-box testing) by ensuring all tests are automatically and consistently executed in a clean environment on every code change.
