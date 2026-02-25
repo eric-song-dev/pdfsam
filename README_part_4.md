@@ -173,6 +173,8 @@ jobs:
         run: mvn clean test --batch-mode -pl pdfsam-core -am -Dmaven.antrun.skip=true
 ```
 
+<div style="page-break-after: always;"></div>
+
 ### 2.2 Configuration Walkthrough
 
 #### Trigger Events
@@ -278,6 +280,8 @@ Each workflow targets a single module with its own `-pl` parameter:
 
 Splitting into three independent workflows allows each team member's module to build and report status separately.
 
+<div style="page-break-after: always;"></div>
+
 ### 2.3 Screenshots
 
 Action run history demonstrating the iterative process from initial build failures to consistent successes.
@@ -355,6 +359,8 @@ All **390 tests** across three modules passed successfully with **zero failures 
 ![image Error Log](screenshot/failure.png)
 
 ![image ci.yml Configuration](screenshot/ci_Configuration.png)
+
+<div style="page-break-after: always;"></div>
 
 ## 📋 5. CI Pipeline Summary
 
