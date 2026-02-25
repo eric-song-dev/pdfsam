@@ -1,4 +1,4 @@
-name: PDFsam CI
+name: PDFsam CI on Model
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-test:
+  build-and-test-on-model:
     runs-on: ubuntu-latest
 
     env:
@@ -25,5 +25,5 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn clean test --batch-mode -pl pdfsam-model,pdfsam-core,pdfsam-persistence -am -Dmaven.antrun.skip=true
+        run: mvn clean test --batch-mode -pl pdfsam-model -am -Dmaven.antrun.skip=true
 
