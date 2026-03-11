@@ -3,7 +3,8 @@
 
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
 ![CodeQL](https://img.shields.io/badge/CodeQL-2088FF?style=for-the-badge&logo=github&logoColor=white)
-![SpotBugs](https://img.shields.io/badge/SpotBugs-4.8.6-red?style=for-the-badge&logo=java&logoColor=white)
+![SpotBugs](https://img.shields.io/badge/SpotBugs-4.8.6-red?style=for-the-badge&logo=java&logoColor=white
+)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 
 <p align="left">
