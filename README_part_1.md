@@ -305,7 +305,7 @@ To ensure robust coverage of the configuration logic, the input space was partit
 
 #### 4.3.3 Test Implementation
 
-The partition tests are implemented in `ZhenyuMergePartitionTest.java` using JUnit 5 and Mockito.
+The partition tests are implemented in <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-tools/pdfsam-merge/src/test/java/org/pdfsam/tools/merge/ZhenyuMergePartitionTest.java">ZhenyuMergePartitionTest.java</a> using JUnit 5 and Mockito.
 
 -   **`testDefaults()`**: Covers the *Default State Partition*. Asserts that a fresh builder produces parameters with expected defaults (e.g., `OutlinePolicy.RETAIN`, `ToCPolicy.NONE`, `isCompress` false).
 -   **`testFullConfiguration()`**: Covers the *Fully Configured Partition*. Sets every property (e.g., `compress(true)`, `version(1.6)`) and asserts the resulting `MergeParameters` object reflects these exact values.
@@ -349,7 +349,7 @@ This test suite implements a systematic **Input Domain Partitioning** strategy t
 
 #### 4.4.3 Test Implementation
 
-The partition tests are implemented in `ZianRotatePartitionTest.java` using JUnit 5, AssertJ, and Mockito.
+The partition tests are implemented in <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-tools/pdfsam-rotate/src/test/java/org/pdfsam/tools/rotate/ZianRotatePartitionTest.java">ZianRotatePartitionTest.java</a> using JUnit 5, AssertJ, and Mockito.
 
 - **`rotation90Degrees()`**: Covers the *Angular Transformation Partition*. It asserts that when a 90° clockwise rotation is set, the builder correctly maps the `Rotation.DEGREES_90` constant to the resulting task parameters.
 - **`allPages()` and `oddPages()`**: Cover the *Predefined Page Set Partition*. These tests simulate a 10-page document and verify that the selection logic correctly calculates the expected page count (e.g., all 10 pages for `ALL_PAGES` vs. 5 pages for `ODD_PAGES`).
@@ -410,9 +410,9 @@ The `ExtractParametersBuilder` class constructs parameters for extracting pages 
 
 | File | Location | Team Member |
 |------|----------|-------------|
-| `ZhenyuMergePartitionTest.java` | `pdfsam-tools/pdfsam-merge/src/test/java/org/pdfsam/tools/merge/` | Zhenyu Song |
-| `ZianRotatePartitionTest.java` | `pdfsam-tools/pdfsam-rotate/src/test/java/org/pdfsam/tools/rotate/` | Zian Xu |
-| `KingsonExtractPartitionTest.java` | `pdfsam-tools/pdfsam-extract/src/test/java/org/pdfsam/tools/extract/` | Kingson Zhang |
+| <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-tools/pdfsam-merge/src/test/java/org/pdfsam/tools/merge/ZhenyuMergePartitionTest.java">ZhenyuMergePartitionTest.java</a> | `pdfsam-tools/pdfsam-merge/src/test/java/org/pdfsam/tools/merge/` | Zhenyu Song |
+| <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-tools/pdfsam-rotate/src/test/java/org/pdfsam/tools/rotate/ZianRotatePartitionTest.java">ZianRotatePartitionTest.java</a> | `pdfsam-tools/pdfsam-rotate/src/test/java/org/pdfsam/tools/rotate/` | Zian Xu |
+| <a href="https://github.com/eric-song-dev/pdfsam/blob/master/pdfsam-tools/pdfsam-extract/src/test/java/org/pdfsam/tools/extract/KingsonExtractPartitionTest.java">KingsonExtractPartitionTest.java</a> | `pdfsam-tools/pdfsam-extract/src/test/java/org/pdfsam/tools/extract/` | Kingson Zhang |
 
 ### 5.2 Running the Partition Tests
 
